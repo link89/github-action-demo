@@ -9,8 +9,7 @@ pushd /opt/cp2k/tools/toolchain
     --target-cpu=skylake-avx512 \
     --install-all \
     --with-cusolvermp=no \
-    --gpu-ver=A100 \
-    --enable-cuda=yes \
+    --enable-cuda=no \
     --with-libtorch=system \
     --with-deepmd=system \
     --with-gcc=system \
