@@ -16,25 +16,22 @@ pushd /opt/cp2k/tools/toolchain
     --with-openmpi=install
 popd
 
-pushd /opt/cp2k
-
 # Build CP2K
+pushd /opt/cp2k
 cp ./tools/toolchain/install/arch/local.psmp ./arch/
 source ./tools/toolchain/install/setup
 make -j 8 ARCH=local VERSION=psmp
 
-#
 mkdir -p /toolchain/install /toolchain/scripts
 for libdir in $(ldd ./exe/local/cp2k.psmp |
                 grep /opt/cp2k/tools/toolchain/install |
                 awk '{print $3}' | cut -d/ -f7 |
-                sort | uniq) setup; do \
-cp -ar /opt/cp2k/tools/toolchain/install/${libdir} /toolchain/install
+                sort | uniq) setup; do
+    cp -ar /opt/cp2k/tools/toolchain/install/${libdir} /toolchain/install
 done
 
 cp /opt/cp2k/tools/toolchain/scripts/tool_kit.sh /toolchain/scripts
 unlink ./exe/local/cp2k.popt
 unlink ./exe/local/cp2k_shell.psmp
-
 popd
 

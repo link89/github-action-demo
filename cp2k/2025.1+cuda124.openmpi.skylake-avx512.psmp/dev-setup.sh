@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-cd /opt
 
 # install system dependencies
 apt-get update -qq
@@ -13,11 +12,18 @@ rm -rf /var/lib/apt/lists/*
 # install tensorflow
 pip install --no-cache-dir tensorflow
 
-pushd /opt
 # install libtorch
+pushd /opt
 wget -O libtorch.zip https://download.pytorch.org/libtorch/cu124/libtorch-cxx11-abi-shared-with-deps-2.6.0%2Bcu124.zip
 unzip libtorch.zip && rm libtorch.zip
-mkdir -p /usr/local/lib /usr/local/include
-ln -s /opt/libtorch/lib/* /usr/local/lib/
 ln -s /opt/libtorch/include/* /usr/local/include/
+ln -s /opt/libtorch/lib/* /usr/local/lib/
+popd
+
+# install libdeepmd
+pushd /opt
+wget -O libdeempd_c.tgz https://github.com/deepmodeling/deepmd-kit/releases/download/v3.0.2/libdeepmd_c.tar.gz
+tar -xzf libdeempd_c.tgz && rm libdeempd_c.tgz
+ln -s /opt/libdeepmd_c/include/* /usr/local/include/
+ln -s /opt/libdeepmd_c/lib/* /usr/local/lib/
 popd

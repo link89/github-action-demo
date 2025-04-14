@@ -1,34 +1,34 @@
-FROM nvidia/cuda:12.4.1-devel-ubuntu22.04
+FROM nvidia/cuda:12.4.1-devel-ubuntu22.04 AS build
 
-# Install packages required for the CP2K toolchain build
-RUN apt-get update -qq && apt-get install -qq --no-install-recommends \
-    g++ gcc gfortran openssh-client python3 python3-pip \
-    bzip2 ca-certificates git make patch pkg-config unzip wget zlib1g-dev
-
-# Install tensorflow
-RUN pip3 install tensorflow
-
-# Install libtorch
-RUN <<EOF set -e
+RUN --mount=type=bind,target=/mnt/scripts <<EOF
+/mnt/scripts/dev-setup.sh
+/mnt/scripts/build-cp2k.sh
 EOF
 
+FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04 AS install
 
-# Install DeepMD
+# Install CP2K binaries
+COPY --from=build /opt/cp2k/exe/local/ /opt/cp2k/exe/local/
+# Install CP2K regression tests
+COPY --from=build /opt/cp2k/tests/ /opt/cp2k/tests/
+COPY --from=build /opt/cp2k/tools/regtesting/ /opt/cp2k/tools/regtesting/
+COPY --from=build /opt/cp2k/src/grid/sample_tasks/ /opt/cp2k/src/grid/sample_tasks/
 
+# Install CP2K database files
+COPY --from=build /opt/cp2k/data/ /opt/cp2k/data/
 
-# Download CP2K
-# Build CP2K for target CPU skylake-avx512
+# Install shared libraries required by the CP2K binaries
+COPY --from=build /toolchain/ /opt/cp2k/tools/toolchain/
 
-# Collect components for installation and remove symbolic links
-RUN /bin/bash -c -o pipefail \
-    "mkdir -p /toolchain/install /toolchain/scripts; \
-     for libdir in \$(ldd ./exe/local/cp2k.psmp | \
-                      grep /opt/cp2k/tools/toolchain/install | \
-                      awk '{print \$3}' | cut -d/ -f7 | \
-                      sort | uniq) setup; do \
-        cp -ar /opt/cp2k/tools/toolchain/install/\${libdir} /toolchain/install; \
-     done; \
-     cp /opt/cp2k/tools/toolchain/scripts/tool_kit.sh /toolchain/scripts; \
-     unlink ./exe/local/cp2k.popt; \
-     unlink ./exe/local/cp2k_shell.psmp"
+RUN --mount=type=bind,target=/mnt/scripts <<EOF
+/mnt/scripts/dev-setup.sh
+/mnt/scripts/install-cp2k.sh
+EOF
+
+ENV OMPI_ALLOW_RUN_AS_ROOT=1
+ENV OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
+ENV OMPI_MCA_btl_vader_single_copy_mechanism=none
+ENV OMP_STACKSIZE=16M
+ENV PATH=/opt/cp2k/exe/local:$PATH
+
 
