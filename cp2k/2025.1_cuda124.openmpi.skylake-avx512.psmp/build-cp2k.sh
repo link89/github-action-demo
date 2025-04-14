@@ -5,7 +5,7 @@ git clone --recursive -b support/v2025.1 https://github.com/cp2k/cp2k.git /opt/c
 
 # Build CP2K toolchain for target CPU skylake-avx512
 pushd /opt/cp2k/tools/toolchain
-./install_cp2k_toolchain.sh -j 8 \
+./install_cp2k_toolchain.sh -j $(nproc) \
     --target-cpu=skylake-avx512 \
     --install-all \
     --with-cusolvermp=no \
@@ -21,7 +21,7 @@ popd
 pushd /opt/cp2k
 cp ./tools/toolchain/install/arch/local.psmp ./arch/
 source ./tools/toolchain/install/setup
-make -j 8 ARCH=local VERSION=psmp
+make -j $(nproc) ARCH=local VERSION=psmp
 
 mkdir -p /toolchain/install /toolchain/scripts
 for libdir in $(ldd ./exe/local/cp2k.psmp |
