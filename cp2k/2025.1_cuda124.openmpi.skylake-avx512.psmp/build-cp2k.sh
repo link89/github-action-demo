@@ -17,7 +17,7 @@ pushd /opt/cp2k/tools/toolchain
     --install-all \
     --with-cusolvermp=no \
     --enable-cuda=no \
-    --with-libtorch=system \
+    --with-libtorch=no \
     --with-deepmd=system \
     --with-gcc=system \
     --with-openmpi=install

@@ -14,8 +14,8 @@ pip install --no-cache-dir tensorflow
 
 # install libtorch
 pushd /opt
-# LIBTORCH_URL=https://download.pytorch.org/libtorch/cu124/libtorch-cxx11-abi-shared-with-deps-2.6.0%2Bcu124.zip
-LIBTORCH_URL=https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.12.1%2Bcpu.zip
+LIBTORCH_URL=https://download.pytorch.org/libtorch/cu124/libtorch-cxx11-abi-shared-with-deps-2.6.0%2Bcu124.zip
+# LIBTORCH_URL=https://download.pytorch.org/libtorch/cpu/libtorch-cxx11-abi-shared-with-deps-1.12.1%2Bcpu.zip
 wget -q $LIBTORCH_URL -O libtorch.zip
 unzip libtorch.zip && rm libtorch.zip
 ln -s /opt/libtorch/include/* /usr/local/include/
