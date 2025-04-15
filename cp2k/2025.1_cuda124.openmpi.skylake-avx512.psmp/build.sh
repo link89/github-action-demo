@@ -2,8 +2,12 @@
 set -e
 cd $(dirname $0)
 
-# build
+# print system info
 df -h
+mount
+env
+
+# build
 mkdir -p /mnt/share
 docker run --rm -it \
     -v /mnt/share:/mnt/share:rw \
