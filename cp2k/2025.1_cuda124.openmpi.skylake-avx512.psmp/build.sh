@@ -2,7 +2,7 @@
 set -e
 cd $(dirname $0)
 
-TAG=cp2k_2025.1_cuda124.openmpi.skylake-avx512.psmp
+TAG=cp2k:2025.1-cuda124.openmpi.skylake-avx512.psmp
 
 docker build --progress plain -t $TAG .
 

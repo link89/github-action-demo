@@ -3,6 +3,12 @@ set -e
 
 git clone --recursive -b support/v2025.1 https://github.com/cp2k/cp2k.git /opt/cp2k
 
+pushd /opt/cp2k
+wget https://github.com/cp2k/cp2k/commit/b66934358f8d9e2bb20b8486fae294a919db9ab6.patch -O fix-dft4.patch
+git apply fix-dft4.patch
+popd
+
+
 # Build CP2K toolchain for target CPU skylake-avx512
 pushd /opt/cp2k/tools/toolchain
 ./install_cp2k_toolchain.sh -j $(nproc) \
