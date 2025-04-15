@@ -12,7 +12,7 @@ env
 sudo mkdir -p /mnt/share
 sudo chmod 777 /mnt/share
 
-docker run --rm -it \
+docker run --rm \
     -v /mnt/share:/mnt/share:rw \
     -v $(pwd):/mnt/scripts \
     nvidia/cuda:12.4.1-devel-ubuntu22.04 /mnt/scripts/cp2k-build.sh
