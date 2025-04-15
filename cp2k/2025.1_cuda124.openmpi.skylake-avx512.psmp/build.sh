@@ -2,8 +2,18 @@
 set -e
 cd $(dirname $0)
 
-TAG=cp2k:2025.1-cuda124.openmpi.skylake-avx512.psmp
+# build
+df -h
+mkdir -p /mnt/share
+docker run --rm -it \
+    -v /mnt/share:/mnt/share:rw \
+    -v $(pwd):/mnt/scripts \
+    nvidia/cuda:12.4.1-devel-ubuntu22.04 /mnt/scripts/cp2k-build.sh
+df -h
 
+
+# install 
+TAG=cp2k:2025.1-cuda124.openmpi.skylake-avx512.psmp
 docker build --progress plain -t $TAG .
 
 # test

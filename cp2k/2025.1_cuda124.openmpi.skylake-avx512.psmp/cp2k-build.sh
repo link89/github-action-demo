@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
+cd $(dirname $0)
 
+./dev-setup.sh
+
+mkdir -p /mnt/share/cp2k
+ln -s /mnt/share/cp2k /opt/cp2k
 git clone --recursive -b support/v2025.1 https://github.com/cp2k/cp2k.git /opt/cp2k
 
 pushd /opt/cp2k
@@ -28,15 +33,16 @@ cp ./tools/toolchain/install/arch/local.psmp ./arch/
 source ./tools/toolchain/install/setup
 make -j $(nproc) ARCH=local VERSION=psmp
 
-mkdir -p /toolchain/install /toolchain/scripts
+mkdir -p /mnt/share/toolchain/install /mnt/share/toolchain/scripts
+
 for libdir in $(ldd ./exe/local/cp2k.psmp |
                 grep /opt/cp2k/tools/toolchain/install |
                 awk '{print $3}' | cut -d/ -f7 |
                 sort | uniq) setup; do
-    cp -ar /opt/cp2k/tools/toolchain/install/${libdir} /toolchain/install
+    cp -ar /opt/cp2k/tools/toolchain/install/${libdir} /mnt/share/toolchain/install
 done
 
-cp /opt/cp2k/tools/toolchain/scripts/tool_kit.sh /toolchain/scripts
+cp /opt/cp2k/tools/toolchain/scripts/tool_kit.sh /mnt/share/toolchain/scripts
 unlink ./exe/local/cp2k.popt
 unlink ./exe/local/cp2k_shell.psmp
 popd
