@@ -3,12 +3,15 @@ set -e
 cd $(dirname $0)
 
 # print system info
+id -a
 df -h
 mount
 env
 
 # build
-mkdir -p /mnt/share
+sudo mkdir -p /mnt/share
+sudo chmod 777 /mnt/share
+
 docker run --rm -it \
     -v /mnt/share:/mnt/share:rw \
     -v $(pwd):/mnt/scripts \
