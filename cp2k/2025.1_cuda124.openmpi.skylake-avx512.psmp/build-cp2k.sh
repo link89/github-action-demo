@@ -5,8 +5,8 @@ git clone --recursive -b support/v2025.1 https://github.com/cp2k/cp2k.git /opt/c
 
 pushd /opt/cp2k
 # fix dftd4 issue
-git show b66934358f8d9e2bb20b8486fae294a919db9ab6 -- tools/toolchain/scripts/stage8/install_dftd4.sh | \
-    git apply -
+git show b66934358f8d9e2bb20b8486fae294a919db9ab6 -- tools/toolchain/scripts/stage8/install_dftd4.sh | git apply -
+git show 0991fe12da12d91042194299b21c123570a769dd -- tools/toolchain/scripts/stage8/install_dftd4.sh | git apply -
 popd
 
 
@@ -16,7 +16,6 @@ pushd /opt/cp2k/tools/toolchain
     --target-cpu=skylake-avx512 \
     --install-all \
     --with-cusolvermp=no \
-    --with-dftd4=no \
     --enable-cuda=no \
     --with-libtorch=system \
     --with-deepmd=system \
