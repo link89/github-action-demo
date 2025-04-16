@@ -19,6 +19,7 @@ popd
 pushd /opt/cp2k/tools/toolchain
 ./install_cp2k_toolchain.sh -j $(nproc) \
     --target-cpu=skylake-avx512 \
+    --install-all \
     --with-cusolvermp=no \
     --enable-cuda=yes \
     --with-gcc=system \
