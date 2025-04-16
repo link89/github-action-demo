@@ -24,7 +24,7 @@ docker build . --build-context dist=/mnt/share/dist --progress plain --tag $TAG 
     --label "runnumber=${GITHUB_RUN_ID}"
 
 # test
-docker run --rm -it $TAG bash <<EOF
+docker run --rm -i $TAG bash <<EOF
 source /opt/cp2k/tools/toolchain/install/setup
 /opt/cp2k/tests/do_regtest.py --mpiexec "mpiexec --bind-to none" --maxtasks 4 --workbasedir /mnt $* /opt/cp2k/exe/local psmp
 EOF
@@ -33,7 +33,7 @@ EOF
 # publish
 # https://docs.github.com/en/packages/managing-github-packages-using-github-actions-workflows/publishing-and-installing-a-package-with-github-actions
 
-echo "$GITHUB_TOKEN" | docker login ghcr.io -u link89 --password-stdin
 IMAGE_URL=ghcr.io/link89/$TAG
+echo "$GITHUB_TOKEN" | docker login ghcr.io -u link89 --password-stdin
 docker tag $IMAGE_NAME $IMAGE_URL
 docker push $IMAGE_URL
