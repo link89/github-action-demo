@@ -27,5 +27,4 @@ jobs:
 
       - name: Run build script
         run: |
-          cd ./cp2k/2025.1_cuda124.openmpi.skylake-avx512.psmp
-          ./build.sh
+          ./cp2k/2025.1-cuda124-openmpi-avx512-psmp/build.sh

@@ -63,6 +63,6 @@ mv ./tools/regtesting $DIST_DIR/tools/
 mv ./src/grid/sample_tasks $DIST_DIR/src/grid/
 
 # Install CP2K database files
-mv ./data/ $DIST_DIR/
+mv ./data $DIST_DIR/
 
 popd
