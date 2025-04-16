@@ -20,7 +20,7 @@ df -h
 
 # install
 TAG=cp2k:2025.1-cuda124.openmpi.skylake-avx512.psmp
-docker build -–build-context share=/mnt/share --progress plain -t $TAG .
+docker build --build-context dist=/mnt/share/dist --progress plain -t $TAG .
 
 # test
 docker run --rm -it $TAG bash <<EOF

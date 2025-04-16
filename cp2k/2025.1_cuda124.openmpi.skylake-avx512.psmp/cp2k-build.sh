@@ -14,7 +14,6 @@ git show b66934358f8d9e2bb20b8486fae294a919db9ab6 -- tools/toolchain/scripts/sta
 git show 0991fe12da12d91042194299b21c123570a769dd -- tools/toolchain/scripts/stage8/install_dftd4.sh | git apply -
 popd
 
-
 # Build CP2K toolchain for target CPU skylake-avx512
 pushd /opt/cp2k/tools/toolchain
 ./install_cp2k_toolchain.sh -j $(nproc) \
@@ -39,32 +38,31 @@ unlink ./exe/local/cp2k_shell.psmp
 
 # Install CP2K
 $DIST_DIR=/mnt/share/dist
-mkdir -p $DIST_DIR/toolchain/install $DIST_DIR/toolchain/scripts
 
+mkdir -p $DIST_DIR/toolchain/install
+mkdir -p $DIST_DIR/toolchain/scripts
+mkdir -p $DIST_DIR/exe
+mkdir -p $DIST_DIR/tools
+mkdir -p $DIST_DIR/src/grid
+
+# Install toolchain
 for libdir in $(ldd ./exe/local/cp2k.psmp |
                 grep /opt/cp2k/tools/toolchain/install |
                 awk '{print $3}' | cut -d/ -f7 |
                 sort | uniq) setup; do
-    cp -ar ./tools/toolchain/install/${libdir} $DIST_DIR/toolchain/install
+    mv ./tools/toolchain/install/${libdir} $DIST_DIR/toolchain/install
 done
-cp ./tools/toolchain/scripts/tool_kit.sh $DIST_DIR/toolchain/scripts
-
+mv ./tools/toolchain/scripts/tool_kit.sh $DIST_DIR/toolchain/scripts
 
 # # Install CP2K binaries
-cp -ar ./exe/local/ $DIST_DIR/exe/local/
+mv ./exe/local $DIST_DIR/exe/
 
-# # Install CP2K regression tests
-# COPY --from=share ./cp2k/tests/ /opt/cp2k/tests/
-# COPY --from=share ./cp2k/tools/regtesting/ /opt/cp2k/tools/regtesting/
-# COPY --from=share ./cp2k/src/grid/sample_tasks/ /opt/cp2k/src/grid/sample_tasks/
-#
-# # Install CP2K database files
-# COPY --from=share ./cp2k/data/ /opt/cp2k/data/
-#
-# # Install shared libraries required by the CP2K binaries
-# COPY --from=share ./toolchain/ /opt/cp2k/tools/toolchain/
+# Install CP2K regression tests
+mv ./tests $DIST_DIR/
+mv ./tools/regtesting $DIST_DIR/tools/
+mv ./src/grid/sample_tasks $DIST_DIR/src/grid/
 
-
-
+# Install CP2K database files
+mv ./data/ $DIST_DIR/
 
 popd

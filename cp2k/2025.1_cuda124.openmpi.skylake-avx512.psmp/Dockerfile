@@ -1,5 +1,6 @@
 FROM nvidia/cuda:12.4.1-runtime-ubuntu22.04
 
+COPY --from=dist . /opt/cp2k/
 
 RUN --mount=type=bind,target=/mnt/scripts <<EOF
 /mnt/scripts/dev-setup.sh
