@@ -21,7 +21,7 @@ pushd /opt/cp2k/tools/toolchain
     --target-cpu=skylake-avx512 \
     --install-all \
     --with-cusolvermp=no \
-    --enable-cuda=yes \
+    --enable-cuda=no \
     --with-gcc=system \
     --with-deepmd=install \
     --with-openmpi=install
@@ -33,17 +33,38 @@ cp ./tools/toolchain/install/arch/local.psmp ./arch/
 source ./tools/toolchain/install/setup
 make -j $(nproc) ARCH=local VERSION=psmp
 
-mkdir -p /mnt/share/toolchain/install /mnt/share/toolchain/scripts
+# Remove unnecessary files
+unlink ./exe/local/cp2k.popt
+unlink ./exe/local/cp2k_shell.psmp
+
+# Install CP2K
+$DIST_DIR=/mnt/share/dist
+mkdir -p $DIST_DIR/toolchain/install $DIST_DIR/toolchain/scripts
 
 for libdir in $(ldd ./exe/local/cp2k.psmp |
                 grep /opt/cp2k/tools/toolchain/install |
                 awk '{print $3}' | cut -d/ -f7 |
                 sort | uniq) setup; do
-    cp -ar /opt/cp2k/tools/toolchain/install/${libdir} /mnt/share/toolchain/install
+    cp -ar ./tools/toolchain/install/${libdir} $DIST_DIR/toolchain/install
 done
+cp ./tools/toolchain/scripts/tool_kit.sh $DIST_DIR/toolchain/scripts
 
-cp /opt/cp2k/tools/toolchain/scripts/tool_kit.sh /mnt/share/toolchain/scripts
-unlink ./exe/local/cp2k.popt
-unlink ./exe/local/cp2k_shell.psmp
+
+# # Install CP2K binaries
+cp -ar ./exe/local/ $DIST_DIR/exe/local/
+
+# # Install CP2K regression tests
+# COPY --from=share ./cp2k/tests/ /opt/cp2k/tests/
+# COPY --from=share ./cp2k/tools/regtesting/ /opt/cp2k/tools/regtesting/
+# COPY --from=share ./cp2k/src/grid/sample_tasks/ /opt/cp2k/src/grid/sample_tasks/
+#
+# # Install CP2K database files
+# COPY --from=share ./cp2k/data/ /opt/cp2k/data/
+#
+# # Install shared libraries required by the CP2K binaries
+# COPY --from=share ./toolchain/ /opt/cp2k/tools/toolchain/
+
+
+
+
 popd
-
