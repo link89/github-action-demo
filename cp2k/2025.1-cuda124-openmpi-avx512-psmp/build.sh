@@ -20,7 +20,8 @@ df -h
 
 # install
 TAG=cp2k:2025.1-cuda124-openmpi-avx512-psmp
-docker build --build-context dist=/mnt/share/dist --progress plain -t $TAG .
+docker build . --build-context dist=/mnt/share/dist --progress plain --tag $TAG \
+    --label "runnumber=${GITHUB_RUN_ID}"
 
 # test
 docker run --rm -it $TAG bash <<EOF
@@ -29,8 +30,10 @@ source /opt/cp2k/tools/toolchain/install/setup
 EOF
 
 
-# if environment variable PUBLISH is set to 1, publish the image
-if [ "$PUBLISH" == "1" ]; then
-    docker tag $TAG $DOCKER_REPO/$TAG
-    docker push $DOCKER_REPO/$TAG
-fi
+# publish
+# https://docs.github.com/en/packages/managing-github-packages-using-github-actions-workflows/publishing-and-installing-a-package-with-github-actions
+
+echo "$GITHUB_TOKEN" | docker login ghcr.io -u link89 --password-stdin
+IMAGE_URL=ghcr.io/link89/$TAG
+docker tag $IMAGE_NAME $IMAGE_URL
+docker push $IMAGE_URL
