@@ -37,7 +37,7 @@ unlink ./exe/local/cp2k.popt
 unlink ./exe/local/cp2k_shell.psmp
 
 # Install CP2K
-$DIST_DIR=/mnt/share/dist
+DIST_DIR=/mnt/share/dist
 
 mkdir -p $DIST_DIR/toolchain/install
 mkdir -p $DIST_DIR/toolchain/scripts
