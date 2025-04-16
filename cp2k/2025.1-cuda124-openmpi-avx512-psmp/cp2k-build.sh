@@ -39,20 +39,20 @@ unlink ./exe/local/cp2k_shell.psmp
 # Install CP2K
 DIST_DIR=/mnt/share/dist
 
-mkdir -p $DIST_DIR/toolchain/install
-mkdir -p $DIST_DIR/toolchain/scripts
+mkdir -p $DIST_DIR/tools/toolchain/install
+mkdir -p $DIST_DIR/tools/toolchain/scripts
+mkdir -p $DIST_DIR/src/grid
 mkdir -p $DIST_DIR/exe
 mkdir -p $DIST_DIR/tools
-mkdir -p $DIST_DIR/src/grid
 
 # Install toolchain
 for libdir in $(ldd ./exe/local/cp2k.psmp |
                 grep /opt/cp2k/tools/toolchain/install |
                 awk '{print $3}' | cut -d/ -f7 |
                 sort | uniq) setup; do
-    mv ./tools/toolchain/install/${libdir} $DIST_DIR/toolchain/install
+    mv ./tools/toolchain/install/${libdir} $DIST_DIR/tools/toolchain/install
 done
-mv ./tools/toolchain/scripts/tool_kit.sh $DIST_DIR/toolchain/scripts
+mv ./tools/toolchain/scripts/tool_kit.sh $DIST_DIR/tools/toolchain/scripts
 
 # # Install CP2K binaries
 mv ./exe/local $DIST_DIR/exe/
