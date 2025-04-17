@@ -2,6 +2,18 @@
 set -e
 cd $(dirname $0)
 
+# debug
+
+docker run --rm -i docker pull ghcr.io/link89/cp2k:2025.1-cuda124-openmpi-avx512-psmp bash <<EOF
+source /opt/cp2k/tools/toolchain/install/setup
+export CUDA_PATH=/usr/local/cuda
+export LD_LIBRARY_PATH=/usr/local/cuda/lib64:\$LD_LIBRARY_PATH
+
+/opt/cp2k/tests/do_regtest.py --mpiexec "mpiexec --bind-to none" --maxtasks 4 --workbasedir /mnt $* /opt/cp2k/exe/local psmp
+
+EOF
+exit 0
+
 # print system info
 id -a
 df -h
