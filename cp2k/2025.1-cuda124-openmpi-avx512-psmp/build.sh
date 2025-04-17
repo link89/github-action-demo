@@ -2,27 +2,27 @@
 set -e
 cd $(dirname $0)
 
-# debug
-
-docker run --rm -i ghcr.io/link89/cp2k:2025.1-cuda124-openmpi-avx512-psmp bash <<EOF
-set -x
-source /opt/cp2k/tools/toolchain/install/setup
-export CUDA_HOME=/usr/local/cuda
-export LD_LIBRARY_PATH=/usr/local/cuda/lib64:\$LD_LIBRARY_PATH
-env
-
-(cd /usr/local/cuda && find .)
-(cd /usr/local/cuda/lib64 && find .)
-find /usr/local/
-
-/opt/cp2k/tests/do_regtest.py --mpiexec "mpiexec --bind-to none" --maxtasks 4 --workbasedir /mnt $* /opt/cp2k/exe/local psmp
-
-export LD_LIBRARY_PATH=/usr/local/cuda-12.4/targets/x86_64-linux/lib:\$LD_LIBRARY_PATH
-env
-/opt/cp2k/tests/do_regtest.py --mpiexec "mpiexec --bind-to none" --maxtasks 4 --workbasedir /mnt $* /opt/cp2k/exe/local psmp
-
-EOF
-exit 0
+# # debug
+#
+# docker run --rm -i ghcr.io/link89/cp2k:2025.1-cuda124-openmpi-avx512-psmp bash <<EOF
+# set -x
+# source /opt/cp2k/tools/toolchain/install/setup
+# export CUDA_HOME=/usr/local/cuda
+# export LD_LIBRARY_PATH=/usr/local/cuda/lib64:\$LD_LIBRARY_PATH
+# env
+#
+# (cd /usr/local/cuda && find .)
+# (cd /usr/local/cuda/lib64 && find .)
+# find /usr/local/
+#
+# /opt/cp2k/tests/do_regtest.py --mpiexec "mpiexec --bind-to none" --maxtasks 4 --workbasedir /mnt $* /opt/cp2k/exe/local psmp
+#
+# export LD_LIBRARY_PATH=/usr/local/cuda-12.4/targets/x86_64-linux/lib:\$LD_LIBRARY_PATH
+# env
+# /opt/cp2k/tests/do_regtest.py --mpiexec "mpiexec --bind-to none" --maxtasks 4 --workbasedir /mnt $* /opt/cp2k/exe/local psmp
+#
+# EOF
+# exit 0
 
 # print system info
 id -a
