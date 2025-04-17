@@ -12,3 +12,8 @@ ENV OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1
 ENV OMPI_MCA_btl_vader_single_copy_mechanism=none
 ENV OMP_STACKSIZE=16M
 ENV PATH=/opt/cp2k/exe/local:$PATH
+
+# export cuda envvar
+ENV CUDA_HOME=/usr/local/cuda
+ENV CUDA_PATH=/usr/local/cuda
+ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
