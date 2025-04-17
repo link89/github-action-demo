@@ -22,7 +22,7 @@ pushd /opt/cp2k/tools/toolchain
     --with-cusolvermp=no \
     --enable-cuda=no \
     --with-gcc=system \
-    --with-deepmd=install \
+    --with-deepmd=system \
     --with-openmpi=install
 popd
 

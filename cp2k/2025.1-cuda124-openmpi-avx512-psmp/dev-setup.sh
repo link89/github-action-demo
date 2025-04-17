@@ -21,12 +21,12 @@ rm -rf /var/lib/apt/lists/*
 # ln -s /opt/libtorch/include/* /usr/local/include/
 # ln -s /opt/libtorch/lib/* /usr/local/lib/
 # popd
-#
-# # install libdeepmd
-# pushd /opt
-# wget -q  https://github.com/deepmodeling/deepmd-kit/releases/download/v3.0.2/libdeepmd_c.tar.gz \
-#     -O libdeempd_c.tgz
-# tar -xzf libdeempd_c.tgz && rm libdeempd_c.tgz
-# ln -s /opt/libdeepmd_c/include/* /usr/local/include/
-# ln -s /opt/libdeepmd_c/lib/* /usr/local/lib/
-# popd
+
+# install libdeepmd
+pushd /opt
+wget -q  https://github.com/deepmodeling/deepmd-kit/releases/download/v3.0.2/libdeepmd_c.tar.gz \
+    -O libdeempd_c.tgz
+tar -xzf libdeempd_c.tgz && rm libdeempd_c.tgz
+ln -s /opt/libdeepmd_c/include/* /usr/local/include/
+ln -s /opt/libdeepmd_c/lib/* /usr/local/lib/
+popd
