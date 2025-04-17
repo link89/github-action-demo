@@ -4,7 +4,7 @@ cd $(dirname $0)
 
 # debug
 
-docker run --rm -i docker pull ghcr.io/link89/cp2k:2025.1-cuda124-openmpi-avx512-psmp bash <<EOF
+docker run --rm -i ghcr.io/link89/cp2k:2025.1-cuda124-openmpi-avx512-psmp bash <<EOF
 source /opt/cp2k/tools/toolchain/install/setup
 export CUDA_PATH=/usr/local/cuda
 export LD_LIBRARY_PATH=/usr/local/cuda/lib64:\$LD_LIBRARY_PATH
