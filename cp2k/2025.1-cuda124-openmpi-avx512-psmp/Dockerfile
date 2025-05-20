@@ -19,10 +19,14 @@ ENV CUDA_PATH=/usr/local/cuda
 ENV LD_LIBRARY_PATH=/usr/local/cuda/lib64:$LD_LIBRARY_PATH
 
 # Create entrypoint script file
-COPY <<EOF /usr/local/bin/entrypoint.sh
+COPY --chmod=755 <<EOF /usr/local/bin/entrypoint.sh
 #!/bin/bash
 ulimit -c 0 -s unlimited
 source /opt/cp2k/tools/toolchain/install/setup
+if [[ $# -eq 0 ]]; then
+  exec "/bin/bash"
+else
+  exec "$@"
+fi
 EOF
-RUN chmod 755 /usr/local/bin/entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
