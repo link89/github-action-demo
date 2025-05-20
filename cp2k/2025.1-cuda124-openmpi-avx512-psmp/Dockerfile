@@ -23,10 +23,10 @@ COPY --chmod=755 <<EOF /usr/local/bin/entrypoint.sh
 #!/bin/bash
 ulimit -c 0 -s unlimited
 source /opt/cp2k/tools/toolchain/install/setup
-if [[ $# -eq 0 ]]; then
+if [[ \$# -eq 0 ]]; then
   exec "/bin/bash"
 else
-  exec "$@"
+  exec "\$@"
 fi
 EOF
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
