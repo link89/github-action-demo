@@ -5,7 +5,8 @@ set -e
 apt-get update -qq
 apt-get install -qq --no-install-recommends \
     g++ gcc gfortran openssh-client python3 python3-pip \
-    bzip2 ca-certificates git make patch pkg-config unzip wget curl zlib1g-dev
+    bzip2 ca-certificates git make patch pkg-config unzip wget curl zlib1g-dev \
+    libmunge-dev
 apt-get clean
 rm -rf /var/lib/apt/lists/*
 
