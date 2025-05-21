@@ -6,7 +6,12 @@ apt-get update -qq
 apt-get install -qq --no-install-recommends \
     g++ gcc gfortran openssh-client python3 python3-pip \
     bzip2 ca-certificates git make patch pkg-config unzip wget curl zlib1g-dev \
-    libmunge-dev
+    libmunge-dev \
+    libucx-dev libucx0 ucx-utils \
+    libibverbs1 libibverbs-dev \
+    librdmacm1 librdmacm-dev \
+    rdma-core libmlx5-1
+
 apt-get clean
 rm -rf /var/lib/apt/lists/*
 
