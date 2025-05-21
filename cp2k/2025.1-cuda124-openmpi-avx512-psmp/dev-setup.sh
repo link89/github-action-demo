@@ -10,7 +10,8 @@ apt-get install -qq --no-install-recommends \
     libucx-dev libucx0 ucx-utils \
     libibverbs1 libibverbs-dev \
     librdmacm1 librdmacm-dev \
-    rdma-core libmlx5-1
+    rdma-core libmlx5-1 \
+    valgrind
 
 apt-get clean
 rm -rf /var/lib/apt/lists/*
