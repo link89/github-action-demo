@@ -14,5 +14,5 @@
 
 - 先通过 `docker run` 编译，将源码、工具链和产物放在 runner 的 `/mnt/scratch`；再通过 `docker build --build-context` 从 `/mnt/scratch` 的发布产物构建最终镜像。
 - `/mnt/scratch` 用作大体积工作目录，以缓解 GitHub Actions runner 根文件系统空间不足。构建前用 `df -h` 和 `mount` 核对它实际所在的文件系统；Docker 镜像层仍占用 Docker 数据目录。
-- `runtime-deps.sh` 只安装运行时依赖，`build-deps.sh` 安装编译工具及开发依赖。最终镜像不运行 `build-deps.sh`。
+- 区分运行时与构建依赖，`runtime-deps.sh` 只安装运行时依赖，`build-deps.sh` 安装编译工具及开发依赖。最终镜像不运行 `build-deps.sh`。
 - 软件安装到 Linux 常规目录（如 `/usr/local/bin`、`/usr/local/lib`、`/usr/local/share`），避免为非标准安装路径额外导出 `PATH`、`LD_LIBRARY_PATH`。
