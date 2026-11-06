@@ -15,11 +15,12 @@ pushd /opt/cp2k
 # fix dftd4 issue
 git show b66934358f8d9e2bb20b8486fae294a919db9ab6 -- tools/toolchain/scripts/stage8/install_dftd4.sh | git apply -
 git show 0991fe12da12d91042194299b21c123570a769dd -- tools/toolchain/scripts/stage8/install_dftd4.sh | git apply -
+git apply /mnt/scripts/openblas-target.patch
 popd
 
 # Build CP2K toolchain for target CPU skylake-avx512
 pushd /opt/cp2k/tools/toolchain
-MAKEFLAGS=TARGET=SKYLAKEX ./install_cp2k_toolchain.sh -j "$(nproc)" \
+./install_cp2k_toolchain.sh -j "$(nproc)" \
     --target-cpu=skylake-avx512 \
     --install-all \
     --with-cusolvermp=no \
