@@ -34,38 +34,64 @@ pushd "$CP2K_SRC/tools/toolchain"
     --with-cusolvermp=no \
     --enable-cuda=no \
     --with-gcc=system \
-    --with-deepmd=system \
+    --with-deepmd=/usr/local \
     --with-openmpi=system
 popd
 
 pushd "$CP2K_SRC"
-cp ./tools/toolchain/install/arch/local.psmp ./arch/
+# Load dependency prefixes exported by the 2026.2 toolchain.
 source ./tools/toolchain/install/setup
-ARCH_FLAGS='-march=skylake-avx512 -mtune=skylake-avx512'
-export CFLAGS="${CFLAGS:+$CFLAGS }$ARCH_FLAGS"
-export CXXFLAGS="${CXXFLAGS:+$CXXFLAGS }$ARCH_FLAGS"
-export FFLAGS="${FFLAGS:+$FFLAGS }$ARCH_FLAGS"
-export FCFLAGS="${FCFLAGS:+$FCFLAGS }$ARCH_FLAGS"
-export F90FLAGS="${F90FLAGS:+$F90FLAGS }$ARCH_FLAGS"
-printf 'Compilers: CC=%s CXX=%s FC=%s\nCP2K flags: %s\n' "$CC" "$CXX" "$FC" "$ARCH_FLAGS"
-make -j "$(nproc)" ARCH=local VERSION=psmp
-
-# The GitHub-hosted runner cannot execute this AVX-512 binary.
-mkdir -p /mnt/scratch/regtest
-./tests/do_regtest.py --mpiexec "mpiexec --bind-to none" --maxtasks 4 \
-    --workbasedir /mnt/scratch/regtest "$@" ./exe/local psmp || true
+BUILD_DIR=/mnt/scratch/cp2k-build
+ARCH_FLAGS='-O3 -g -march=skylake-avx512 -mtune=skylake-avx512'
+# Upstream Release adds -march=native. RelWithDebInfo lets us explicitly
+# select the target CPU for all three languages without host CPU overrides.
+cmake -S "$CP2K_SRC" -B "$BUILD_DIR" -G Ninja \
+    -DCMAKE_BUILD_TYPE=RelWithDebInfo \
+    -DCMAKE_INSTALL_PREFIX=/usr/local \
+    -DCMAKE_INSTALL_LIBDIR=lib \
+    -DCMAKE_C_COMPILER="$CC" -DCMAKE_CXX_COMPILER="$CXX" \
+    -DCMAKE_Fortran_COMPILER="$FC" \
+    -DCMAKE_C_FLAGS_RELWITHDEBINFO="$ARCH_FLAGS" \
+    -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="$ARCH_FLAGS" \
+    -DCMAKE_Fortran_FLAGS_RELWITHDEBINFO="$ARCH_FLAGS" \
+    -DMPI_C_COMPILER=/usr/local/bin/mpicc \
+    -DMPI_CXX_COMPILER=/usr/local/bin/mpicxx \
+    -DMPI_Fortran_COMPILER=/usr/local/bin/mpifort \
+    -DCP2K_USE_EVERYTHING=ON \
+    -DCP2K_USE_MPI=ON -DCP2K_USE_DEEPMD=ON \
+    -DCP2K_USE_DLAF=OFF -DCP2K_USE_PEXSI=OFF -DCP2K_USE_OPENPMD=OFF \
+    -DCP2K_USE_SIRIUS_VCSQNM=ON \
+    -DCP2K_USE_SIRIUS_DFTD3=ON -DCP2K_USE_SIRIUS_DFTD4=ON \
+    -DCP2K_USE_ACCEL=NONE \
+    -DDeePMD_DIR=/usr/local/lib/cmake/DeePMD \
+    -DCP2K_DATA_DIR=/usr/local/share/cp2k/data \
+    -DBUILD_SHARED_LIBS=ON
+cmake --build "$BUILD_DIR" --parallel "$(nproc)"
+DESTDIR=/mnt/scratch/dist cmake --install "$BUILD_DIR"
 
 DIST=/mnt/scratch/dist/usr/local
-mkdir -p "$DIST/bin" "$DIST/lib" "$DIST/include" "$DIST/share/cp2k"
+# Include staged libcp2k when resolving the installed executable's dependencies.
+export LD_LIBRARY_PATH="$DIST/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+mkdir -p "$DIST/lib" "$DIST/include"
 cp -a /usr/local/lib/libdeepmd*.so* "$DIST/lib/"
 cp -a /usr/local/include/deepmd "$DIST/include/"
 
-ldd ./exe/local/cp2k.psmp | awk -v prefix="$CP2K_SRC/tools/toolchain/install/" 'index($3, prefix) == 1 {print $3}' | \
+# ldd traverses transitive dependencies, including libcp2k's toolchain libraries.
+ldd "$DIST/bin/cp2k.psmp" | tee /mnt/scratch/cp2k-ldd
+if grep -q 'not found' /mnt/scratch/cp2k-ldd; then
+    echo 'CP2K has unresolved build-time libraries' >&2
+    exit 1
+fi
+awk -v prefix="$CP2K_SRC/tools/toolchain/install/" \
+    'index($3, prefix) == 1 {print $3}' /mnt/scratch/cp2k-ldd | \
     while IFS= read -r library; do cp -aL "$library" "$DIST/lib/"; done
 
-rm -f ./exe/local/cp2k.popt ./exe/local/cp2k_shell.psmp
-mv ./exe/local/* "$DIST/bin/"
-mv ./data "$DIST/share/cp2k/"
+test -s "$DIST/share/cp2k/data/BASIS_MOLOPT"
+# The AVX-512 regression run is diagnostic on GitHub-hosted runners.
+mkdir -p /mnt/scratch/regtest
+CP2K_DATA_DIR="$DIST/share/cp2k/data" ./tests/do_regtest.py \
+    --mpiexec "mpiexec --bind-to none" --maxtasks 4 \
+    --workbasedir /mnt/scratch/regtest "$@" "$DIST/bin" psmp || true
 popd
 
 # Preserve the exact Python packages that DeePMD linked against.

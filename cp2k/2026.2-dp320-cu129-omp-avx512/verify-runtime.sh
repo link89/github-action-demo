@@ -2,6 +2,8 @@
 set -euo pipefail
 
 test -x /usr/local/bin/cp2k.psmp
+test -s /usr/local/share/cp2k/data/BASIS_MOLOPT
+test -e /usr/local/lib/libcp2k.so
 test -e /usr/local/lib/libdeepmd_c.so
 test "$(command -v mpiexec)" = /usr/local/bin/mpiexec
 mpiexec --version
