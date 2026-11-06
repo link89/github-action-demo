@@ -1,4 +1,4 @@
-name: Build CP2K Image
+name: Build Images
 on:
   pull_request:
     types: [opened, reopened, edited, synchronize]
@@ -6,14 +6,34 @@ on:
     branches: [ main ]
 
 jobs:
+  discover:
+    runs-on: ubuntu-latest
+    outputs:
+      builds: ${{ steps.discover.outputs.builds }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Discover build scripts
+        id: discover
+        run: |
+          builds=$(find . -mindepth 3 -maxdepth 3 -type f -name build.sh -print | sort | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          test "$builds" != '[]'
+          echo "builds=$builds" >> "$GITHUB_OUTPUT"
+
   build:
+    needs: discover
     permissions:
       packages: write
       contents: read
 
     env:
       PUBLISH: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && '1' || '' }}
+      BUILD_SCRIPT: ${{ matrix.script }}
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        script: ${{ fromJson(needs.discover.outputs.builds) }}
     steps:
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@main
@@ -33,4 +53,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.event_name == 'push' && secrets.GITHUB_TOKEN || '' }}
         run: |
-          ./cp2k/2025.1-dp302-cu124-omp/build.sh
+          "$BUILD_SCRIPT"
