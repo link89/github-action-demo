@@ -18,13 +18,16 @@ mkdir -p "$PYTHONPATH" "$TMPDIR"
 curl -fL --retry 3 https://github.com/cp2k/cp2k/archive/refs/tags/v2026.2.tar.gz \
     -o /mnt/scratch/cp2k-v2026.2.tar.gz
 tar -xzf /mnt/scratch/cp2k-v2026.2.tar.gz -C /mnt/scratch
-ln -s /mnt/scratch/cp2k-2026.2 /opt/cp2k
+CP2K_SRC=/mnt/scratch/cp2k-2026.2
 
-pushd /opt/cp2k
+# The toolchain requires PWD to match its physical source directory.
+CP2K_SRC=$(cd "$CP2K_SRC" && pwd -P)
+
+pushd "$CP2K_SRC"
 git apply /mnt/scripts/openblas-target.patch
 popd
 
-pushd /opt/cp2k/tools/toolchain
+pushd "$CP2K_SRC/tools/toolchain"
 ./install_cp2k_toolchain.sh -j "$(nproc)" \
     --target-cpu=skylake-avx512 \
     --install-all \
@@ -35,7 +38,7 @@ pushd /opt/cp2k/tools/toolchain
     --with-openmpi=system
 popd
 
-pushd /opt/cp2k
+pushd "$CP2K_SRC"
 cp ./tools/toolchain/install/arch/local.psmp ./arch/
 source ./tools/toolchain/install/setup
 ARCH_FLAGS='-march=skylake-avx512 -mtune=skylake-avx512'
@@ -57,7 +60,7 @@ mkdir -p "$DIST/bin" "$DIST/lib" "$DIST/include" "$DIST/share/cp2k"
 cp -a /usr/local/lib/libdeepmd*.so* "$DIST/lib/"
 cp -a /usr/local/include/deepmd "$DIST/include/"
 
-ldd ./exe/local/cp2k.psmp | awk '$3 ~ /^\/opt\/cp2k\/tools\/toolchain\/install\// {print $3}' | \
+ldd ./exe/local/cp2k.psmp | awk -v prefix="$CP2K_SRC/tools/toolchain/install/" 'index($3, prefix) == 1 {print $3}' | \
     while IFS= read -r library; do cp -aL "$library" "$DIST/lib/"; done
 
 rm -f ./exe/local/cp2k.popt ./exe/local/cp2k_shell.psmp

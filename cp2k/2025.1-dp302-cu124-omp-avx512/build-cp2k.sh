@@ -7,11 +7,13 @@ export CC=${CC:-gcc} CXX=${CXX:-g++} FC=${FC:-gfortran}
 export F77=${F77:-gfortran} F90=${F90:-gfortran}
 export OMPI_CC=${OMPI_CC:-gcc} OMPI_CXX=${OMPI_CXX:-g++} OMPI_FC=${OMPI_FC:-gfortran}
 
-mkdir -p /mnt/scratch/cp2k
-ln -s /mnt/scratch/cp2k /opt/cp2k
-git clone --recursive -b support/v2025.1 https://github.com/cp2k/cp2k.git /opt/cp2k
+CP2K_SRC=/mnt/scratch/cp2k
+git clone --recursive -b support/v2025.1 https://github.com/cp2k/cp2k.git "$CP2K_SRC"
 
-pushd /opt/cp2k
+# The toolchain requires PWD to match its physical source directory.
+CP2K_SRC=$(cd "$CP2K_SRC" && pwd -P)
+
+pushd "$CP2K_SRC"
 # fix dftd4 issue
 git show b66934358f8d9e2bb20b8486fae294a919db9ab6 -- tools/toolchain/scripts/stage8/install_dftd4.sh | git apply -
 git show 0991fe12da12d91042194299b21c123570a769dd -- tools/toolchain/scripts/stage8/install_dftd4.sh | git apply -
@@ -19,7 +21,7 @@ git apply /mnt/scripts/openblas-target.patch
 popd
 
 # Build CP2K toolchain for target CPU skylake-avx512
-pushd /opt/cp2k/tools/toolchain
+pushd "$CP2K_SRC/tools/toolchain"
 ./install_cp2k_toolchain.sh -j "$(nproc)" \
     --target-cpu=skylake-avx512 \
     --install-all \
@@ -31,7 +33,7 @@ pushd /opt/cp2k/tools/toolchain
 popd
 
 # Build CP2K
-pushd /opt/cp2k
+pushd "$CP2K_SRC"
 cp ./tools/toolchain/install/arch/local.psmp ./arch/
 source ./tools/toolchain/install/setup
 printf 'Compilers: CC=%s CXX=%s FC=%s\n' "$CC" "$CXX" "$FC"
@@ -60,7 +62,7 @@ DIST_DIR=/mnt/scratch/dist
 mkdir -p "$DIST_DIR/bin" "$DIST_DIR/lib" "$DIST_DIR/share/cp2k"
 
 # Collect the toolchain libraries linked by CP2K into a standard loader path.
-ldd ./exe/local/cp2k.psmp | awk '$3 ~ /^\/opt\/cp2k\/tools\/toolchain\/install\// {print $3}' | \
+ldd ./exe/local/cp2k.psmp | awk -v prefix="$CP2K_SRC/tools/toolchain/install/" 'index($3, prefix) == 1 {print $3}' | \
     while IFS= read -r library; do
         cp -aL "$library" "$DIST_DIR/lib/"
     done
