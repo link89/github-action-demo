@@ -6,6 +6,7 @@
 
 - 项目目录为 `{name}/{version}-{build-string}`。`build-string` 参考 conda 风格，记录影响二进制兼容性的关键依赖和构建选项；对应镜像标签为 `{name}:{version}-{build-string}`。
 - 每个项目的 `build.sh` 是唯一构建入口。构建镜像时设置 OCI metadata（至少包括 source、revision、version 和 title）。
+- `build.sh` 在构建及已发布标签检查前输出项目名、版本、构建串、镜像地址、源码提交、发布模式，以及 runner 的系统、CPU、内存、磁盘挂载和 Docker 存储信息，便于核对 CI 日志。不得输出完整环境变量或凭据。
 - 工作流自动发现 `{name}/{version}-{build-string}/build.sh`，每个入口在独立 job 中构建；新增项目无需修改工作流。
 - 构建前检查目标标签是否已在仓库发布；已发布则跳过。需要重建时应更新版本或 build-string，避免覆盖已有标签。
 - PR 只构建，不发布；合入主分支后才允许发布。发布凭据只用于主分支构建。

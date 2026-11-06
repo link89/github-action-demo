@@ -3,6 +3,9 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 ./build-deps.sh
+export CC=${CC:-gcc} CXX=${CXX:-g++} FC=${FC:-gfortran}
+export F77=${F77:-gfortran} F90=${F90:-gfortran}
+export OMPI_CC=${OMPI_CC:-gcc} OMPI_CXX=${OMPI_CXX:-g++} OMPI_FC=${OMPI_FC:-gfortran}
 
 mkdir -p /mnt/scratch/cp2k
 ln -s /mnt/scratch/cp2k /opt/cp2k
@@ -30,6 +33,16 @@ popd
 pushd /opt/cp2k
 cp ./tools/toolchain/install/arch/local.psmp ./arch/
 source ./tools/toolchain/install/setup
+printf 'Compilers: CC=%s CXX=%s FC=%s\n' "$CC" "$CXX" "$FC"
+printf 'Generated architecture flags:\n'
+grep -E 'march=|avx512' ./arch/local.psmp || true
+ARCH_FLAGS='-march=skylake-avx512 -mtune=skylake-avx512'
+export CFLAGS="${CFLAGS:+$CFLAGS }$ARCH_FLAGS"
+export CXXFLAGS="${CXXFLAGS:+$CXXFLAGS }$ARCH_FLAGS"
+export FFLAGS="${FFLAGS:+$FFLAGS }$ARCH_FLAGS"
+export FCFLAGS="${FCFLAGS:+$FCFLAGS }$ARCH_FLAGS"
+export F90FLAGS="${F90FLAGS:+$F90FLAGS }$ARCH_FLAGS"
+printf 'CP2K architecture flags: %s\n' "$ARCH_FLAGS"
 make -j "$(nproc)" ARCH=local VERSION=psmp
 
 # GitHub-hosted runners lack AVX-512; this test is diagnostic only.
