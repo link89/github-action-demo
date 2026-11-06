@@ -1,0 +1,42 @@
+name: Build on PR or Rebuild Comment
+on:
+  pull_request:
+    types: [opened, reopened, edited, synchronize]
+  issue_comment:
+    types: [created]
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    permissions:
+      packages: write
+      contents: read
+
+    if: >
+      github.event_name == 'pull_request' ||
+      (github.event_name == 'issue_comment' && contains(github.event.comment.body, 'rebuild')) ||
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    env:
+      PUBLISH: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && '1' || '' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Free Disk Space (Ubuntu)
+        uses: jlumbroso/free-disk-space@main
+        with:
+          swap-storage: false
+          large-packages: false
+          tool-cache: true
+          android: true
+          dotnet: true
+          haskell: true
+          docker-images: true
+
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Run build script
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ./cp2k/2025.1-cuda124-openmpi-avx512-psmp/build.sh
