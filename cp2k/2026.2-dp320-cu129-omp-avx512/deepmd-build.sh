@@ -32,6 +32,8 @@ cmake -S "$SOURCE/source" -B /mnt/scratch/deepmd-build -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=/usr/local \
     -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ \
+    -DMPI_C_COMPILER=/usr/local/bin/mpicc \
+    -DMPI_CXX_COMPILER=/usr/local/bin/mpicxx \
     -DCMAKE_CXX_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=1 \
     -DBUILD_CPP_IF=ON -DBUILD_PY_IF=OFF \
     -DENABLE_TENSORFLOW=ON -DUSE_TF_PYTHON_LIBS=ON \

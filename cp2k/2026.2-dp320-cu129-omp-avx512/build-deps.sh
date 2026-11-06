@@ -12,3 +12,5 @@ apt-get clean
 rm -rf /var/lib/apt/lists/*
 
 python3 -m pip install --no-cache-dir 'cmake>=3.25.2,<4' ninja
+
+"$(dirname "$0")/openmpi-build.sh"

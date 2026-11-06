@@ -3,9 +3,16 @@ set -euo pipefail
 
 test -x /usr/local/bin/cp2k.psmp
 test -e /usr/local/lib/libdeepmd_c.so
+test "$(command -v mpiexec)" = /usr/local/bin/mpiexec
+mpiexec --version
 ldd /usr/local/bin/cp2k.psmp | tee /tmp/cp2k-ldd
 if grep -q 'not found' /tmp/cp2k-ldd; then
     echo 'CP2K has unresolved libraries' >&2
+    exit 1
+fi
+mpi_library=$(awk '$1 ~ /^libmpi\.so/ {print $3; exit}' /tmp/cp2k-ldd)
+if [[ "$mpi_library" != /usr/local/lib/libmpi.so* ]]; then
+    echo "CP2K is not using the source-built OpenMPI: $mpi_library" >&2
     exit 1
 fi
 for library in /usr/local/lib/libdeepmd*.so; do

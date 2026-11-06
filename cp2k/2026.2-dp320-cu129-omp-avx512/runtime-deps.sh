@@ -4,7 +4,7 @@ set -euo pipefail
 apt-get update -qq
 apt-get install -qq --no-install-recommends \
     ca-certificates libmunge2 libucx0 libibverbs1 librdmacm1 \
-    rdma-core libmlx5-1 libopenmpi3 openmpi-bin python3
+    rdma-core libmlx5-1 python3
 apt-get clean
 rm -rf /var/lib/apt/lists/*
 

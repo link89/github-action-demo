@@ -3,6 +3,9 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 ./build-deps.sh
+test "$(command -v mpicc)" = /usr/local/bin/mpicc
+test "$(command -v mpifort)" = /usr/local/bin/mpifort
+mpicc --showme:link
 export CC=${CC:-gcc} CXX=${CXX:-g++} FC=${FC:-gfortran}
 export F77=${F77:-gfortran} F90=${F90:-gfortran}
 export OMPI_CC=${OMPI_CC:-gcc} OMPI_CXX=${OMPI_CXX:-g++} OMPI_FC=${OMPI_FC:-gfortran}
