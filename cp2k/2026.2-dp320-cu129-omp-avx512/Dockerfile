@@ -3,8 +3,8 @@ FROM nvidia/cuda:12.9.1-cudnn-runtime-ubuntu22.04
 COPY --from=dist /usr/local/ /usr/local/
 
 RUN --mount=type=bind,target=/mnt/scripts <<EOF
-/mnt/scripts/runtime-deps.sh
-/mnt/scripts/cp2k-install.sh
+/mnt/scripts/install-runtime-deps.sh
+/mnt/scripts/install-cp2k.sh
 EOF
 
 ENV OMPI_ALLOW_RUN_AS_ROOT=1

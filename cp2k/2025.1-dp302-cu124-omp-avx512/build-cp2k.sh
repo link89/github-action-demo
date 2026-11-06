@@ -2,7 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-./build-deps.sh
+./install-build-deps.sh
 export CC=${CC:-gcc} CXX=${CXX:-g++} FC=${FC:-gfortran}
 export F77=${F77:-gfortran} F90=${F90:-gfortran}
 export OMPI_CC=${OMPI_CC:-gcc} OMPI_CXX=${OMPI_CXX:-g++} OMPI_FC=${OMPI_FC:-gfortran}

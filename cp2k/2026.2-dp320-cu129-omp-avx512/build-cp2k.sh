@@ -2,7 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-./build-deps.sh
+./install-build-deps.sh
 test "$(command -v mpicc)" = /usr/local/bin/mpicc
 test "$(command -v mpifort)" = /usr/local/bin/mpifort
 mpicc --showme:link
@@ -13,7 +13,7 @@ export PYTHONPATH=/mnt/scratch/python
 export TMPDIR=/mnt/scratch/tmp
 mkdir -p "$PYTHONPATH" "$TMPDIR"
 
-./deepmd-build.sh
+./build-deepmd.sh
 
 curl -fL --retry 3 https://github.com/cp2k/cp2k/archive/refs/tags/v2026.2.tar.gz \
     -o /mnt/scratch/cp2k-v2026.2.tar.gz

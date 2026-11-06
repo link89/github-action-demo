@@ -5,8 +5,8 @@ COPY --from=dist /lib/ /usr/local/lib/
 COPY --from=dist /share/cp2k/ /usr/local/share/cp2k/
 
 RUN --mount=type=bind,target=/mnt/scripts <<EOF
-/mnt/scripts/runtime-deps.sh
-/mnt/scripts/cp2k-install.sh
+/mnt/scripts/install-runtime-deps.sh
+/mnt/scripts/install-cp2k.sh
 ldconfig
 EOF
 

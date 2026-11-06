@@ -45,7 +45,7 @@ docker run --rm \
     -e OMPI_CC=gcc -e OMPI_CXX=g++ -e OMPI_FC=gfortran \
     --mount "type=bind,source=$SCRATCH,target=/mnt/scratch" \
     --mount "type=bind,source=$PWD,target=/mnt/scripts,readonly" \
-    nvidia/cuda:12.9.1-cudnn-devel-ubuntu22.04 /mnt/scripts/cp2k-build.sh "$@"
+    nvidia/cuda:12.9.1-cudnn-devel-ubuntu22.04 /mnt/scripts/build-cp2k.sh "$@"
 
 df -h / "$SCRATCH"
 docker build . --build-context "dist=$SCRATCH/dist" --progress plain --tag "$TAG" \

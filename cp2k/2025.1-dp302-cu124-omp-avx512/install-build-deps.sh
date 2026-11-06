@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-"$(dirname "$0")/runtime-deps.sh"
+"$(dirname "$0")/install-runtime-deps.sh"
 
 apt-get update -qq
 apt-get install -qq --no-install-recommends \
