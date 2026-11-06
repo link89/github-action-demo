@@ -1,9 +1,7 @@
-name: Build on PR or Rebuild Comment
+name: Build CP2K Image
 on:
   pull_request:
     types: [opened, reopened, edited, synchronize]
-  issue_comment:
-    types: [created]
   push:
     branches: [ main ]
 
@@ -13,12 +11,8 @@ jobs:
       packages: write
       contents: read
 
-    if: >
-      github.event_name == 'pull_request' ||
-      (github.event_name == 'issue_comment' && contains(github.event.comment.body, 'rebuild')) ||
-      (github.event_name == 'push' && github.ref == 'refs/heads/main')
     env:
-      PUBLISH: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' && '1' || '' }}
+      PUBLISH: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && '1' || '' }}
     runs-on: ubuntu-latest
     steps:
       - name: Free Disk Space (Ubuntu)
@@ -37,6 +31,6 @@ jobs:
 
       - name: Run build script
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.event_name == 'push' && secrets.GITHUB_TOKEN || '' }}
         run: |
-          ./cp2k/2025.1-cuda124-openmpi-avx512-psmp/build.sh
+          ./cp2k/2025.1-dp302-cu124-omp/build.sh
