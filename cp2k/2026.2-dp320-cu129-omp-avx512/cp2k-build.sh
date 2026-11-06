@@ -21,7 +21,7 @@ tar -xzf /mnt/scratch/cp2k-v2026.2.tar.gz -C /mnt/scratch
 ln -s /mnt/scratch/cp2k-2026.2 /opt/cp2k
 
 pushd /opt/cp2k/tools/toolchain
-./install_cp2k_toolchain.sh -j "$(nproc)" \
+MAKEFLAGS=TARGET=SKYLAKEX ./install_cp2k_toolchain.sh -j "$(nproc)" \
     --target-cpu=skylake-avx512 \
     --install-all \
     --with-cusolvermp=no \

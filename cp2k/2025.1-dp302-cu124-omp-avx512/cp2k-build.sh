@@ -19,7 +19,7 @@ popd
 
 # Build CP2K toolchain for target CPU skylake-avx512
 pushd /opt/cp2k/tools/toolchain
-./install_cp2k_toolchain.sh -j "$(nproc)" \
+MAKEFLAGS=TARGET=SKYLAKEX ./install_cp2k_toolchain.sh -j "$(nproc)" \
     --target-cpu=skylake-avx512 \
     --install-all \
     --with-cusolvermp=no \
