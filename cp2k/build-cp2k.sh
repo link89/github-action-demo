@@ -51,8 +51,6 @@ BUILD_DIR=/mnt/scratch/cp2k-build
 ARCH_FLAGS='-O3 -g -march=skylake-avx512 -mtune=skylake-avx512'
 # Upstream Release adds -march=native. RelWithDebInfo lets us explicitly
 # select the target CPU for all three languages without host CPU overrides.
-# DeepMD's CUDA target exports device.h as a downstream PCH, but installs it
-# under include/deepmd. CP2K defines no PCH headers of its own.
 cmake -S "$CP2K_SRC" -B "$BUILD_DIR" -G Ninja \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DCMAKE_INSTALL_PREFIX=/usr/local \
@@ -74,7 +72,6 @@ cmake -S "$CP2K_SRC" -B "$BUILD_DIR" -G Ninja \
     -DCP2K_BLAS_VENDOR=OpenBLAS \
     -DDeePMD_DIR=/usr/local/lib/cmake/DeePMD \
     -DCP2K_DATA_DIR=/usr/local/share/cp2k/data \
-    -DCMAKE_DISABLE_PRECOMPILE_HEADERS=ON \
     -DBUILD_SHARED_LIBS=ON
 cmake --build "$BUILD_DIR" --parallel "$(nproc)"
 DESTDIR=/mnt/scratch/dist cmake --install "$BUILD_DIR"

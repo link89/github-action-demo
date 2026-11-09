@@ -8,6 +8,16 @@ curl -fL --retry 3 https://github.com/deepmodeling/deepmd-kit/archive/refs/tags/
 tar -xzf "$ARCHIVE" -C /mnt/scratch
 mv /mnt/scratch/deepmd-kit-3.2.0 "$SOURCE"
 
+# DeepMD exports its CUDA device.h PCH to consumers, but installs the header
+# under include/deepmd. Keep this implementation detail private to DeepMD.
+DEEPMD_GPU_CMAKE="$SOURCE/source/lib/src/gpu/CMakeLists.txt"
+sed -i \
+    's/target_precompile_headers(${GPU_LIB_NAME_SUFFIX} PUBLIC \[\["device.h"\]\])/target_precompile_headers(${GPU_LIB_NAME_SUFFIX} PRIVATE [["device.h"]])/' \
+    "$DEEPMD_GPU_CMAKE"
+grep -Fq \
+    'target_precompile_headers(${GPU_LIB_NAME_SUFFIX} PRIVATE [["device.h"]])' \
+    "$DEEPMD_GPU_CMAKE"
+
 python3 -m pip install --no-cache-dir --target "$PYTHONPATH" \
     --extra-index-url https://download.pytorch.org/whl/cu129 \
     'torch==2.10.0+cu129' 'tensorflow==2.17.0' 'numpy<2'
