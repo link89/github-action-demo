@@ -39,8 +39,6 @@ fi
 sudo mkdir -p "$SCRATCH"
 sudo chown "$(id -u):$(id -g)" "$SCRATCH"
 docker run --rm \
-    -e CC=gcc -e CXX=g++ -e FC=gfortran -e F77=gfortran -e F90=gfortran \
-    -e OMPI_CC=gcc -e OMPI_CXX=g++ -e OMPI_FC=gfortran \
     -e SOURCE_COMMIT="$REVISION" \
     --mount "type=bind,source=$SCRATCH,target=/mnt/scratch" \
     --mount "type=bind,source=$PWD,target=/mnt/scripts,readonly" \
