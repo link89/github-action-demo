@@ -4,11 +4,11 @@
 
 ## 总体约定
 
-- 项目目录为 `{name}/{version}-{build-string}`。`build-string` 参考 conda 风格，记录影响二进制兼容性的关键依赖和构建选项；对应镜像标签为 `{name}:{version}-{build-string}`。
-- 每个项目的 `build.sh` 是唯一构建入口。构建镜像时设置 OCI metadata（至少包括 source、revision、version 和 title）。
-- 除工作流自动发现所需的 `build.sh` 外，辅助脚本统一以“动词-意图”命名，例如 `build-cp2k.sh`、`install-runtime-deps.sh` 和 `verify-runtime.sh`；重命名时同步更新所有调用方。
-- `build.sh` 在构建及已发布标签检查前输出项目名、版本、构建串、镜像地址、源码提交、发布模式，以及 runner 的系统、CPU、内存、磁盘挂载和 Docker 存储信息，便于核对 CI 日志。不得输出完整环境变量或凭据。
-- 工作流自动发现 `{name}/{version}-{build-string}/build.sh`，每个入口在独立 job 中构建；新增项目无需修改工作流。
+- 项目目录为 `{name}`；同一项目的不同构建配置使用不同入口脚本，如 `make.sh`、`make-avx512.sh`。`build-string` 参考 conda 风格，记录影响二进制兼容性的关键依赖和构建选项；镜像标签在入口脚本中显式设定，不依赖目录结构。
+- 构建入口统一命名为 `make*.sh`，源码或组件构建辅助脚本统一命名为 `build-*.sh`，安装和验证脚本分别使用 `install-*.sh`、`verify-*.sh`；重命名时同步更新所有调用方。
+- 构建镜像时设置 OCI metadata（至少包括 source、revision、version 和 title）。
+- `make*.sh` 在构建及已发布标签检查前输出项目名、版本、构建串、镜像地址、源码提交、发布模式，以及 runner 的系统、CPU、内存、磁盘挂载和 Docker 存储信息，便于核对 CI 日志。不得输出完整环境变量或凭据。
+- 工作流显式列出 `make*.sh` 入口，每个入口在独立 job 中构建；新增构建配置时同步修改工作流。
 - 构建前检查目标标签是否已在仓库发布；已发布则跳过。需要重建时应更新版本或 build-string，避免覆盖已有标签。
 - PR 只构建，不发布；合入主分支后才允许发布。发布凭据只用于主分支构建。
 

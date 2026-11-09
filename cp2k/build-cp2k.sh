@@ -2,6 +2,11 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
+printf 'Building cp2k 2026.2-dp320-cu129-omp-avx512, source %s\n' \
+    "${SOURCE_COMMIT:-unknown}"
+df -h /mnt/scratch
+mount | grep '/mnt/scratch' || true
+
 ./install-build-deps.sh
 test "$(command -v mpicc)" = /usr/local/bin/mpicc
 test "$(command -v mpifort)" = /usr/local/bin/mpifort
@@ -35,6 +40,7 @@ pushd "$CP2K_SRC/tools/toolchain"
     --enable-cuda=no \
     --with-gcc=system \
     --with-deepmd=/usr/local \
+    --with-openblas=install \
     --with-openmpi=system
 popd
 
@@ -63,6 +69,7 @@ cmake -S "$CP2K_SRC" -B "$BUILD_DIR" -G Ninja \
     -DCP2K_USE_SIRIUS_VCSQNM=ON \
     -DCP2K_USE_SIRIUS_DFTD3=ON -DCP2K_USE_SIRIUS_DFTD4=ON \
     -DCP2K_USE_ACCEL=NONE \
+    -DCP2K_BLAS_VENDOR=OpenBLAS \
     -DDeePMD_DIR=/usr/local/lib/cmake/DeePMD \
     -DCP2K_DATA_DIR=/usr/local/share/cp2k/data \
     -DBUILD_SHARED_LIBS=ON
