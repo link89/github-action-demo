@@ -59,6 +59,7 @@ pushd "$CP2K_SRC/tools/toolchain"
     --with-deepmd=/usr/local \
     --with-libtorch=/usr/local \
     --with-mkl=system \
+    --with-gmp=system \
     --with-openblas=no \
     --with-openmpi=system
 popd

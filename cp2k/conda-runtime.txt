@@ -11,6 +11,9 @@ libtorch=2.10.0=cuda129_mkl*
 numpy<2
 # Intel oneAPI MKL only: do not introduce Intel MPI or Intel compilers.
 mkl=2025.3.*
+# Conda GCC's C++ wrapper produces malformed libtool postdeps (a bare -L),
+# so use conda-forge GMP instead of rebuilding libgmpxx in the toolchain.
+gmp=6.3.0
 libblas=*=*mkl
 liblapack=*=*mkl
 libgcc>=14
