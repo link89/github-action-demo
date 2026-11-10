@@ -4,7 +4,7 @@ cd "$(dirname "$0")"
 
 NAME=cp2k
 VERSION=2026.2
-BUILD_STRING=dp320-tf219-pt210-cu129-mkl2025.3-ompi506-avx512-0
+BUILD_STRING=dp320-tf219-pt210-cu129-mkl2025.3-ompi5x-icelake-1
 BASE_IMAGE=condaforge/miniforge3:26.3.2-3
 DOCKER_TAG="${NAME}:${VERSION}-${BUILD_STRING}"
 OWNER="${GITHUB_REPOSITORY_OWNER:-link89}"

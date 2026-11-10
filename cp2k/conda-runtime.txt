@@ -20,3 +20,4 @@ ucx
 libfabric
 rdma-core
 openssh
+openmpi=5.0.*

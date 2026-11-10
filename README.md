@@ -7,7 +7,7 @@
 and OpenBLAS build. The image tag is explicitly defined in `make.sh`:
 
 ```text
-ghcr.io/link89/cp2k:2026.2-dp320-tf219-pt210-cu129-mkl2025.3-ompi506-avx512-0
+ghcr.io/link89/cp2k:2026.2-dp320-tf219-pt210-cu129-mkl2025.3-ompi5x-icelake-1
 ```
 
 ### Dependencies and build layout
@@ -22,12 +22,18 @@ ghcr.io/link89/cp2k:2026.2-dp320-tf219-pt210-cu129-mkl2025.3-ompi506-avx512-0
   `cusparselt-dev=0.8.1.1` build package (headers and linker symlink). This
   release provides CUDA 12 builds; newer releases require CUDA 13.
 - Only the MKL components of oneAPI are installed, not Intel MPI or Intel
-  compilers. OpenMPI stays at the existing source-built version 5.0.6, with
-  internal hwloc, libevent and PMIx. No conda MPI package is allowed.
+  compilers. OpenMPI and its C/C++/Fortran wrappers come from conda-forge's
+  latest 5.0.x packages (`openmpi`, `openmpi-mpicc`, `openmpi-mpicxx`, and
+  `openmpi-mpifort`); OpenMPI is no longer built from source.
 - CP2K uses LP64 sequential MKL BLAS/LAPACK and MKL ScaLAPACK with OpenMPI
   BLACS. As in upstream's toolchain, MPI-enabled libvdwxc requires standalone
   FFTW; the other auxiliary libraries are still built by the CP2K toolchain.
   CP2K itself keeps `CP2K_USE_ACCEL=NONE`; GPU support is in DeePMD's backends.
+- DeePMD's CMake configuration loads conda-forge's `ProtobufConfig.cmake`
+  before TensorFlow and LibTorch discovery. This ensures the complete set of
+  `protobuf::` imported targets exists before framework configs can define a
+  partial set, avoiding the CI error where `libprotobuf`, `libprotoc`, etc. are
+  already defined but `libupb` and the upb generator targets are missing.
 - `conda-runtime.txt` and `conda-build.txt` are solved together. The runtime
   dependency closure is exported as an exact URL/checksum lock, so the final
   image installs the same runtime packages without rerunning the solver or
@@ -55,11 +61,12 @@ it does not establish GPU compatibility or model accuracy.
 
 ### Run an input file
 
-The CPU must support AVX-512, as in the previous build. Mount the calculation
-directory read/write; the entrypoint treats an `.inp` argument as a CP2K input.
+The build targets Ice Lake-SP using explicit `icelake-server` flags for CP2K
+and its toolchain dependencies. Mount the calculation directory read/write;
+the entrypoint treats an `.inp` argument as a CP2K input.
 
 ```bash
-IMAGE=ghcr.io/link89/cp2k:2026.2-dp320-tf219-pt210-cu129-mkl2025.3-ompi506-avx512-0
+IMAGE=ghcr.io/link89/cp2k:2026.2-dp320-tf219-pt210-cu129-mkl2025.3-ompi5x-icelake-1
 docker run --rm -v "$PWD:/work" -e OMP_NUM_THREADS=4 "$IMAGE" cp2k.inp
 docker run --rm -v "$PWD:/work" -e OMP_NUM_THREADS=2 "$IMAGE" \
   mpiexec --bind-to none -np 4 cp2k -i cp2k.inp -o cp2k.out

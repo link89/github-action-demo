@@ -24,9 +24,9 @@ printf '%s\n' /usr/local/lib /usr/local/lib64 \
     /usr/local/lib/python3.12/site-packages/tensorflow \
     /usr/local/targets/x86_64-linux/lib > /etc/ld.so.conf.d/cp2k-conda.conf
 ldconfig
-./build-openmpi.sh
 test "$(command -v mpicc)" = /usr/local/bin/mpicc
 test "$(command -v mpifort)" = /usr/local/bin/mpifort
+mpirun --version | grep -Eq '5\.0\.'
 mpicc --showme:link
 export CC=${CC:-gcc} CXX=${CXX:-g++} FC=${FC:-gfortran}
 export F77=${F77:-gfortran} F90=${F90:-gfortran}
@@ -50,7 +50,7 @@ popd
 
 pushd "$CP2K_SRC/tools/toolchain"
 ./install_cp2k_toolchain.sh -j "$(nproc)" \
-    --target-cpu=skylake-avx512 \
+    --target-cpu=icelake-server \
     --install-all \
     --with-cusolvermp=no \
     --enable-cuda=no \
@@ -67,7 +67,7 @@ pushd "$CP2K_SRC"
 # Load dependency prefixes exported by the 2026.2 toolchain.
 source ./tools/toolchain/install/setup
 BUILD_DIR=/mnt/scratch/cp2k-build
-ARCH_FLAGS='-O3 -g -march=skylake-avx512 -mtune=skylake-avx512'
+ARCH_FLAGS='-O3 -g -march=icelake-server -mtune=icelake-server'
 # Upstream Release adds -march=native. RelWithDebInfo lets us explicitly
 # select the target CPU for all three languages without host CPU overrides.
 # Do not override CMAKE_INSTALL_LIBDIR here: CP2K declares it as a cache PATH,

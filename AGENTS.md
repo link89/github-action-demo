@@ -18,3 +18,4 @@
 - `/mnt/scratch` 用作大体积工作目录，以缓解 GitHub Actions runner 根文件系统空间不足。构建前用 `df -h` 和 `mount` 核对它实际所在的文件系统；Docker 镜像层仍占用 Docker 数据目录。
 - 区分运行时与构建依赖，`install-runtime-deps.sh` 只安装运行时依赖，`install-build-deps.sh` 安装编译工具及开发依赖。最终镜像不运行 `install-build-deps.sh`。
 - 软件安装到 Linux 常规目录（如 `/usr/local/bin`、`/usr/local/lib`、`/usr/local/share`），避免为非标准安装路径额外导出 `PATH`、`LD_LIBRARY_PATH`。
+- 默认编译优化目标平台为 Intel Xeon Gold 6338（Ice Lake-SP）。

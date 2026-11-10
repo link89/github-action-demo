@@ -15,3 +15,6 @@ zlib
 cuda-toolkit
 cusparselt-dev=0.8.1.1
 mkl-devel=2025.3.*
+openmpi-mpicc=5.0.*
+openmpi-mpicxx=5.0.*
+openmpi-mpifort=5.0.*

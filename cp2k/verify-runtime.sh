@@ -8,7 +8,7 @@ test -e /usr/local/lib/libcp2k.so
 test -e /usr/local/lib/libdeepmd_c.so
 test "$(command -v mpiexec)" = /usr/local/bin/mpiexec
 mpiexec --version
-mpiexec --version | grep -F '5.0.6'
+mpiexec --version | grep -Eq '5\.0\.'
 ldd /usr/local/bin/cp2k.psmp | tee /tmp/cp2k-ldd
 if grep -q 'not found' /tmp/cp2k-ldd; then
     echo 'CP2K has unresolved libraries' >&2
@@ -23,7 +23,7 @@ if grep -Eq 'libopenblas|libmpich|libmkl_blacs_intelmpi' /tmp/cp2k-ldd; then
 fi
 mpi_library=$(awk '$1 ~ /^libmpi\.so/ {print $3; exit}' /tmp/cp2k-ldd)
 if [[ "$mpi_library" != /usr/local/lib/libmpi.so* ]]; then
-    echo "CP2K is not using the source-built OpenMPI: $mpi_library" >&2
+    echo "CP2K is not using the conda-forge OpenMPI: $mpi_library" >&2
     exit 1
 fi
 for library in /usr/local/lib/libdeepmd*.so; do

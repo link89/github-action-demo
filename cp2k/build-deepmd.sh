@@ -36,6 +36,7 @@ cmake -S "$SOURCE/source" -B /mnt/scratch/deepmd-build -G Ninja \
     -DMPI_C_COMPILER=/usr/local/bin/mpicc \
     -DMPI_CXX_COMPILER=/usr/local/bin/mpicxx \
     -DCMAKE_CXX_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=1 \
+    -DCMAKE_PROJECT_INCLUDE=/mnt/scripts/cmake-preload-protobuf.cmake \
     -DBUILD_CPP_IF=ON -DBUILD_PY_IF=OFF \
     -DENABLE_TENSORFLOW=ON -DUSE_TF_PYTHON_LIBS=ON \
     -DENABLE_PYTORCH=ON -DUSE_PT_PYTHON_LIBS=ON \
