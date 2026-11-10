@@ -8,8 +8,9 @@ curl -fL --retry 3 https://github.com/deepmodeling/deepmd-kit/archive/refs/tags/
 tar -xzf "$ARCHIVE" -C /mnt/scratch
 mv /mnt/scratch/deepmd-kit-3.2.0 "$SOURCE"
 
-# DeepMD exports its CUDA device.h PCH to consumers, but installs the header
-# under include/deepmd. Keep this implementation detail private to DeepMD.
+# DeepMD's TensorFlow sources relied on device.h leaking through a PUBLIC PCH.
+# Keep that PCH private so the broken install interface is not exported, and
+# add the direct includes those sources are missing.
 DEEPMD_GPU_CMAKE="$SOURCE/source/lib/src/gpu/CMakeLists.txt"
 sed -i \
     's/target_precompile_headers(${GPU_LIB_NAME_SUFFIX} PUBLIC \[\["device.h"\]\])/target_precompile_headers(${GPU_LIB_NAME_SUFFIX} PRIVATE [["device.h"]])/' \
@@ -17,6 +18,13 @@ sed -i \
 grep -Fq \
     'target_precompile_headers(${GPU_LIB_NAME_SUFFIX} PRIVATE [["device.h"]])' \
     "$DEEPMD_GPU_CMAKE"
+
+DEEPMD_API_SRC="$SOURCE/source/api_cc/src"
+for source in DataModifierTF.cc DeepTensorTF.cc; do
+    sed -i '/^#include "[^"]*TF\.h"$/a #include "device.h"' \
+        "$DEEPMD_API_SRC/$source"
+    grep -Fq '#include "device.h"' "$DEEPMD_API_SRC/$source"
+done
 
 python3 -m pip install --no-cache-dir --target "$PYTHONPATH" \
     --extra-index-url https://download.pytorch.org/whl/cu129 \
