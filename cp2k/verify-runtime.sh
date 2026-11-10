@@ -87,7 +87,7 @@ elif grep -qw avx512f /proc/cpuinfo; then
     cd "$work"
     export OMP_NUM_THREADS=1
     cp2k --version
-    /usr/local/bin/entrypoint.sh cp2k "$input" -o serial.out
+    /usr/local/bin/entrypoint.sh cp2k -i "$input" -o serial.out
     grep -q 'ENERGY| Total FORCE_EVAL' serial.out
     /usr/local/bin/entrypoint.sh cp2k.psmp --version
     mpiexec --bind-to none --oversubscribe -np 2 cp2k -i "$input" -o mpi.out

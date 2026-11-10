@@ -81,21 +81,20 @@ it does not establish GPU compatibility or model accuracy.
 
 The build targets Ice Lake-SP using explicit `icelake-server` flags for CP2K
 and its toolchain dependencies. Mount the calculation directory read/write;
-the entrypoint treats a direct `.inp` argument or a CP2K executable followed
-by an `.inp` argument as a CP2K input.
+the entrypoint only configures the process environment and executes the given
+command unchanged. Pass CP2K input files explicitly with `-i`.
 
 ```bash
 IMAGE=ghcr.io/link89/cp2k:2026.2-dp320-ompi50x-icelake-1
 CUDA_IMAGE=ghcr.io/link89/cp2k:2026.2-dp320-ompi50x-cu129-icelake-1
-docker run --rm -v "$PWD:/work" -e OMP_NUM_THREADS=4 "$IMAGE" cp2k.inp
 docker run --rm -v "$PWD:/work" -e OMP_NUM_THREADS=4 "$IMAGE" \
-  cp2k cp2k.inp
+  cp2k -i cp2k.inp
 docker run --rm -v "$PWD:/work" -e OMP_NUM_THREADS=4 "$IMAGE" \
-  cp2k.psmp cp2k.inp -o cp2k.out
+  cp2k.psmp -i cp2k.inp -o cp2k.out
 docker run --rm -v "$PWD:/work" -e OMP_NUM_THREADS=2 "$IMAGE" \
   mpiexec --bind-to none -np 4 cp2k -i cp2k.inp -o cp2k.out
 docker run --rm "$IMAGE" cp2k.psmp --version
-docker run --rm --gpus all -v "$PWD:/work" "$CUDA_IMAGE" cp2k cp2k.inp
+docker run --rm --gpus all -v "$PWD:/work" "$CUDA_IMAGE" cp2k -i cp2k.inp
 ```
 
 For the CUDA image or GPU-enabled DeePMD inference, install NVIDIA Container
@@ -127,7 +126,8 @@ PRs only build and test; only pushes to `main` can publish. The CPU and CUDA
 variants run as parallel matrix jobs. Both images are checked for missing
 libraries, MKL/OpenMPI linkage, framework versions and ABI, backend plugin
 loading, and the expected CP2K acceleration mode. AVX-512-capable runners
-execute the CPU image's smoke regressions and entrypoint forms. The CUDA image
+execute the CPU image's smoke regressions and explicit `cp2k -i` entrypoint
+form. The CUDA image
 is compiled and checked for CUDA linkage, but hosted CPU runners have no GPU and
 therefore skip CUDA execution. GPU execution must be validated on a machine
 with a compatible driver and `--gpus all`.

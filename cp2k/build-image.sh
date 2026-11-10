@@ -104,7 +104,8 @@ fi
 if ((can_run)); then
     docker run --rm "${gpu_args[@]}" \
         --mount "type=bind,source=$PWD,target=/work,readonly" \
-        --workdir /tmp -e OMP_NUM_THREADS=1 "$DOCKER_TAG" /work/smoke.inp -o /tmp/smoke.out
+        --workdir /tmp -e OMP_NUM_THREADS=1 "$DOCKER_TAG" \
+        cp2k -i /work/smoke.inp -o /tmp/smoke.out
 else
     echo 'Skipping CP2K input execution: runner lacks AVX-512 or the CUDA variant has no GPU.'
 fi
