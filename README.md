@@ -33,7 +33,9 @@ ghcr.io/link89/cp2k:2026.2-dp320-tf219-pt210-cu129-mkl2025.3-ompi506-avx512-0
   image installs the same runtime packages without rerunning the solver or
   explicitly adding GCC, CMake, development packages or the full CUDA toolkit.
   Packages transitively required by the frameworks remain, including any
-  CUDA compiler tools required by TensorFlow itself.
+  CUDA compiler tools required by TensorFlow itself. Package tarballs, channel
+  indexes, solver caches and root temporary caches are removed in the same
+  Docker layer as runtime installation.
 - `/usr/local` is a conda prefix bind-mounted from `/mnt/scratch/conda` while
   building. Sources, package cache, toolchain, build trees and staged output
   also live on `/mnt/scratch`. The final `docker build --build-context` consumes

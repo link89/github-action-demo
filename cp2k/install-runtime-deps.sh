@@ -5,9 +5,13 @@ export CONDA_OVERRIDE_CUDA=12.9
 mkdir -p /usr/local/conda-meta
 touch /usr/local/conda-meta/history
 /opt/conda/bin/mamba install -y --prefix /usr/local --file /tmp/runtime-explicit.txt
-/opt/conda/bin/mamba clean --all --yes
 mkdir -p /usr/local/share/cp2k
 mv /tmp/runtime-explicit.txt /usr/local/share/cp2k/runtime-explicit.txt
+
+# Remove downloaded packages, repodata, indexes, and temporary files in the
+# same Docker layer that installs the runtime environment.
+/opt/conda/bin/mamba clean --all --yes
+rm -rf /opt/conda/pkgs/* /root/.cache /root/.conda /tmp/* /var/tmp/*
 
 PYTHON_LIB=/usr/local/lib/python3.12/site-packages
 {
