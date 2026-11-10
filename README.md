@@ -38,7 +38,9 @@ determines MPI library compatibility for cross-node jobs.
   `openmpi-mpifort`); OpenMPI is no longer built from source.
 - CP2K uses LP64 sequential MKL BLAS/LAPACK and MKL ScaLAPACK with OpenMPI
   BLACS. As in upstream's toolchain, MPI-enabled libvdwxc requires standalone
-  FFTW; the other auxiliary libraries are still built by the CP2K toolchain.
+  FFTW. Parallel HDF5 and a matching MPI build of `h5py` come from conda-forge
+  so TF and CP2K share one HDF5 installation; the toolchain is pointed at that
+  prefix because conda's `h5cc` retains its original feedstock path.
   Conda installs MKL under `/usr/local/lib`; both the build prefix and final
   image create `/usr/local/lib/intel64{,_lin}` compatibility links because
   CP2K, SpFFT, and the toolchain only search the Intel installation layout.

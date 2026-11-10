@@ -96,6 +96,9 @@ toolchain_args=(
     --with-libtorch=/usr/local
     --with-mkl=system
     --with-gmp=system
+    # Conda's h5cc reports its original feedstock path, so point the toolchain
+    # directly at the installed parallel HDF5 prefix.
+    --with-hdf5=/usr/local
     --with-openblas=no
     --with-openmpi=system
 )
@@ -142,6 +145,7 @@ cmake_args=(
     -DCP2K_BLAS_INTERFACE=32bits -DCP2K_BLAS_THREADING=sequential
     -DCP2K_USE_FFTW3_WITH_MKL=ON
     -DMKL_ROOT=/usr/local
+    -DHDF5_ROOT=/usr/local
     -DDeePMD_DIR=/usr/local/lib/cmake/DeePMD
     -DCP2K_DATA_DIR=/usr/local/share/cp2k/data
     -DBUILD_SHARED_LIBS=ON

@@ -8,6 +8,10 @@ cudnn>=9.10,<10
 # 0.8.1.1 has CUDA 12 builds; newer releases require CUDA 13.
 cusparselt=0.8.1.1
 tensorflow=2.19.1=cuda128*
+# CP2K requires parallel HDF5. Keep h5py on the same MPI variant so
+# TensorFlow cannot pull in the serial HDF5 build.
+hdf5=2.1.0=mpi_openmpi*
+h5py=*=mpi_openmpi*
 # Build 300 keeps the libabseil ABI used by TensorFlow 2.19.1; build 301 moved
 # to a newer libabseil and cannot be solved with the TensorFlow build.
 pytorch=2.12.0=cuda129_mkl*_300
