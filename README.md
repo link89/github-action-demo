@@ -7,8 +7,8 @@
 variants use separate tags:
 
 ```text
-ghcr.io/link89/cp2k:2026.2-dp320-ompi50x-icelake-1
-ghcr.io/link89/cp2k:2026.2-dp320-ompi50x-cu129-icelake-1
+ghcr.io/link89/cp2k:2026.2-dp320-ompi50x-icelake-2
+ghcr.io/link89/cp2k:2026.2-dp320-ompi50x-cu129-icelake-2
 ```
 
 CUDA 12.9 remains in the CUDA tag because both CP2K and DeePMD are compiled
@@ -20,13 +20,15 @@ determines MPI library compatibility for cross-node jobs.
 ### Dependencies and build layout
 
 - Mamba installs Python 3.12, CUDA 12.9, cuDNN 9, TensorFlow 2.19.1 (CUDA
-  12.8 build, compatible with CUDA 12.9), PyTorch/libtorch 2.10 (CUDA 12.9,
-  MKL variant), Intel oneAPI MKL 2025.3, Cython, and GCC/G++/GFortran 14.
+  12.8 build, compatible with CUDA 12.9), PyTorch/libtorch 2.12.0 (CUDA 12.9,
+  MKL variant), Intel oneAPI MKL 2026.0, Cython, and GCC/G++/GFortran 14.
   Cython comes from conda-forge in the runtime prefix, so both its Python
   module and command are available without pip.
   The compiler toolchain uses the `compilers=1.11.0` metapackage, which selects
-  all three GCC 14 compiler wrappers on linux-64. CUDA development and MKL
-  development dependencies use the `cuda-toolkit` and `mkl-devel` metapackages.
+  all three GCC 14 compiler wrappers on linux-64. CUDA development uses the
+  `cuda-compiler=12.9.2` and `cuda-libraries-dev=12.9.2` components rather than
+  the full toolkit, whose `cuda-tools`/Nsight dependencies pin an older `krb5`
+  incompatible with TensorFlow 2.19.1. MKL development uses `mkl-devel`.
 - cuSPARSELt uses conda-forge's `cusparselt=0.8.1.1` runtime package and
   `cusparselt-dev=0.8.1.1` build package (headers and linker symlink). This
   release provides CUDA 12 builds; newer releases require CUDA 13.
@@ -70,7 +72,7 @@ determines MPI library compatibility for cross-node jobs.
   rebuilding a published tag; existing tags are never overwritten.
 
 TensorFlow 2.17 from the old wheel-based build is not retained: its conda
-protobuf/abseil constraints conflict with libtorch 2.10. The reference
+protobuf/abseil constraints conflict with libtorch 2.12. The reference
 `tmp/build-dpa4-ikkem.sh` warns about TensorFlow 2.19 on H100; this new
 all-conda combination still needs real GPU/model validation, especially on
 H100. CI checks CPU tensor operations, CUDA-enabled package metadata, shared
@@ -85,8 +87,8 @@ the entrypoint only configures the process environment and executes the given
 command unchanged. Pass CP2K input files explicitly with `-i`.
 
 ```bash
-IMAGE=ghcr.io/link89/cp2k:2026.2-dp320-ompi50x-icelake-1
-CUDA_IMAGE=ghcr.io/link89/cp2k:2026.2-dp320-ompi50x-cu129-icelake-1
+IMAGE=ghcr.io/link89/cp2k:2026.2-dp320-ompi50x-icelake-2
+CUDA_IMAGE=ghcr.io/link89/cp2k:2026.2-dp320-ompi50x-cu129-icelake-2
 docker run --rm -v "$PWD:/work" -e OMP_NUM_THREADS=4 "$IMAGE" \
   cp2k -i cp2k.inp
 docker run --rm -v "$PWD:/work" -e OMP_NUM_THREADS=4 "$IMAGE" \
@@ -112,10 +114,10 @@ a Dockerfile or Compose image reference:
 
 ```bash
 python3 scripts/build-sif.py \
-  ghcr.io/link89/cp2k:2026.2-dp320-ompi50x-icelake-1
+  ghcr.io/link89/cp2k:2026.2-dp320-ompi50x-icelake-2
 ```
 
-This creates `cp2k-2026.2-dp320-ompi50x-icelake-1.sif` and reuses
+This creates `cp2k-2026.2-dp320-ompi50x-icelake-2.sif` and reuses
 `./tmp-oci` by default. Pass an output path or `--oci-dir` to override them.
 The script does not set Apptainer cache or temporary-directory variables; set
 them in the environment when the defaults are unsuitable.

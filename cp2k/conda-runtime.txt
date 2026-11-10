@@ -8,11 +8,13 @@ cudnn>=9.10,<10
 # 0.8.1.1 has CUDA 12 builds; newer releases require CUDA 13.
 cusparselt=0.8.1.1
 tensorflow=2.19.1=cuda128*
-pytorch=2.10.0=cuda129*
-libtorch=2.10.0=cuda129_mkl*
+# Build 300 keeps the libabseil ABI used by TensorFlow 2.19.1; build 301 moved
+# to a newer libabseil and cannot be solved with the TensorFlow build.
+pytorch=2.12.0=cuda129_mkl*_300
+libtorch=2.12.0=cuda129_mkl*_300
 numpy<2
 # Intel oneAPI MKL only: do not introduce Intel MPI or Intel compilers.
-mkl=2025.3.*
+mkl=2026.0.*
 # Conda GCC's C++ wrapper produces malformed libtool postdeps (a bare -L),
 # so use conda-forge GMP instead of rebuilding libgmpxx in the toolchain.
 gmp=6.3.0

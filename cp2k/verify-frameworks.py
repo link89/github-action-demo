@@ -16,7 +16,7 @@ print("TensorFlow CUDA:", tf.sysconfig.get_build_info())
 print("PyTorch CUDA:", torch.version.cuda)
 assert sys.prefix == "/usr/local"
 assert tf.__version__ == "2.19.1"
-assert torch.__version__.split("+")[0] == "2.10.0"
+assert torch.__version__.split("+")[0] == "2.12.0"
 assert tf_abi == "1" and torch._C._GLIBCXX_USE_CXX11_ABI
 assert tf.test.is_built_with_cuda()
 assert torch.version.cuda == "12.9"
