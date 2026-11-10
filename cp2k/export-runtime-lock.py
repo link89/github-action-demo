@@ -30,9 +30,14 @@ def export(prefix, specs, output):
         selected.add(name)
         pending.extend(package_name(dep) for dep in records[name].get("depends", []))
 
-    # Prevent an indirect dependency from silently replacing the source MPI.
-    if selected & {"openmpi", "mpich", "impi_rt", "intel-mpi"}:
-        raise RuntimeError("Runtime packages must not bring their own MPI")
+    # OpenMPI is intentionally provided by conda-forge; reject competing MPI
+    # implementations from the runtime dependency closure.
+    conflicting_mpi = selected & {"mpich", "impi_rt", "intel-mpi"}
+    if conflicting_mpi:
+        raise RuntimeError(
+            "Runtime packages selected conflicting MPI implementations: "
+            + ", ".join(sorted(conflicting_mpi))
+        )
     urls = []
     for name in sorted(selected):
         record = records[name]

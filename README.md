@@ -7,7 +7,7 @@
 and OpenBLAS build. The image tag is explicitly defined in `make.sh`:
 
 ```text
-ghcr.io/link89/cp2k:2026.2-dp320-tf219-pt210-cu129-mkl2025.3-ompi5x-icelake-1
+ghcr.io/link89/cp2k:2026.2-dp320-cu129-mkl-ompi-icelake-1
 ```
 
 ### Dependencies and build layout
@@ -66,7 +66,7 @@ and its toolchain dependencies. Mount the calculation directory read/write;
 the entrypoint treats an `.inp` argument as a CP2K input.
 
 ```bash
-IMAGE=ghcr.io/link89/cp2k:2026.2-dp320-tf219-pt210-cu129-mkl2025.3-ompi5x-icelake-1
+IMAGE=ghcr.io/link89/cp2k:2026.2-dp320-cu129-mkl-ompi-icelake-1
 docker run --rm -v "$PWD:/work" -e OMP_NUM_THREADS=4 "$IMAGE" cp2k.inp
 docker run --rm -v "$PWD:/work" -e OMP_NUM_THREADS=2 "$IMAGE" \
   mpiexec --bind-to none -np 4 cp2k -i cp2k.inp -o cp2k.out

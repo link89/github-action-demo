@@ -4,16 +4,20 @@ cd "$(dirname "$0")"
 
 NAME=cp2k
 VERSION=2026.2
-BUILD_STRING=dp320-tf219-pt210-cu129-mkl2025.3-ompi5x-icelake-1
+BUILD_ID=1
+BUILD_VARIANT=dp320-cu129-mkl-ompi-icelake
+BUILD_STRING="${BUILD_VARIANT}-${BUILD_ID}"
 BASE_IMAGE=condaforge/miniforge3:26.3.2-3
 DOCKER_TAG="${NAME}:${VERSION}-${BUILD_STRING}"
 OWNER="${GITHUB_REPOSITORY_OWNER:-link89}"
 IMAGE_URL="ghcr.io/${OWNER,,}/${DOCKER_TAG}"
+STABLE_TAG="${NAME}:${VERSION}-${BUILD_VARIANT}"
+STABLE_IMAGE_URL="ghcr.io/${OWNER,,}/${STABLE_TAG}"
 SCRATCH="/mnt/scratch/${NAME}-${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-1}"
 REVISION="${GITHUB_SHA:-$(git rev-parse HEAD 2>/dev/null || true)}"
 
-printf 'Project: %s\nVersion: %s\nBuild string: %s\nImage: %s\nSource: %s\nRevision: %s\nPublish: %s\nScratch: %s\n' \
-    "$NAME" "$VERSION" "$BUILD_STRING" "$IMAGE_URL" \
+printf 'Project: %s\nVersion: %s\nBuild string: %s\nImage: %s\nStable image: %s\nSource: %s\nRevision: %s\nPublish: %s\nScratch: %s\n' \
+    "$NAME" "$VERSION" "$BUILD_STRING" "$IMAGE_URL" "$STABLE_IMAGE_URL" \
     "${GITHUB_REPOSITORY:-link89/github-action-demo}" "${REVISION:-unknown}" \
     "${PUBLISH:-0}" "$SCRATCH"
 printf 'Base image: %s\n' "$BASE_IMAGE"
@@ -68,4 +72,6 @@ fi
 if [[ "${PUBLISH:-}" == 1 ]]; then
     docker tag "$DOCKER_TAG" "$IMAGE_URL"
     docker push "$IMAGE_URL"
+    docker tag "$DOCKER_TAG" "$STABLE_IMAGE_URL"
+    docker push "$STABLE_IMAGE_URL"
 fi
