@@ -7,8 +7,11 @@
 and OpenBLAS build. The image tag is explicitly defined in `make.sh`:
 
 ```text
-ghcr.io/link89/cp2k:2026.2-dp320-cu129-mkl-ompi-icelake-1
+ghcr.io/link89/cp2k:2026.2-dp320-mkl-ompi-icelake-1
 ```
+
+The tag intentionally omits the CUDA version: CP2K is CPU-only in this image
+and GPU support is provided only by DeePMD's backends.
 
 ### Dependencies and build layout
 
@@ -69,7 +72,7 @@ the entrypoint treats a direct `.inp` argument or a CP2K executable followed
 by an `.inp` argument as a CP2K input.
 
 ```bash
-IMAGE=ghcr.io/link89/cp2k:2026.2-dp320-cu129-mkl-ompi-icelake-1
+IMAGE=ghcr.io/link89/cp2k:2026.2-dp320-mkl-ompi-icelake-1
 docker run --rm -v "$PWD:/work" -e OMP_NUM_THREADS=4 "$IMAGE" cp2k.inp
 docker run --rm -v "$PWD:/work" -e OMP_NUM_THREADS=4 "$IMAGE" \
   cp2k cp2k.inp
@@ -85,6 +88,22 @@ use a driver compatible with CUDA 12.9, and add `--gpus all` to `docker run`.
 Ordinary commands and CP2K executables without an input file run unchanged,
 e.g. `docker run --rm -it "$IMAGE" bash` or `docker run --rm "$IMAGE"
 cp2k.psmp`. Without arguments, the container displays CP2K help.
+
+### Build an Apptainer image
+
+`scripts/build-sif.py` uses `skopeo` to download a Docker image into an OCI
+layout and `apptainer` to build a SIF. The image argument uses the same form as
+a Dockerfile or Compose image reference:
+
+```bash
+python3 scripts/build-sif.py \
+  ghcr.io/link89/cp2k:2026.2-dp320-mkl-ompi-icelake-1
+```
+
+This creates `cp2k-2026.2-dp320-mkl-ompi-icelake-1.sif` and reuses
+`./tmp-oci` by default. Pass an output path or `--oci-dir` to override them.
+The script does not set Apptainer cache or temporary-directory variables; set
+them in the environment when the defaults are unsuitable.
 
 ### CI validation
 

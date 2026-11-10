@@ -5,7 +5,8 @@ cd "$(dirname "$0")"
 NAME=cp2k
 VERSION=2026.2
 BUILD_ID=1
-BUILD_VARIANT=dp320-cu129-mkl-ompi-icelake
+# Only DeePMD has GPU support; the tag must not imply accelerated CP2K.
+BUILD_VARIANT=dp320-mkl-ompi-icelake
 BUILD_STRING="${BUILD_VARIANT}-${BUILD_ID}"
 BASE_IMAGE=condaforge/miniforge3:26.3.2-3
 DOCKER_TAG="${NAME}:${VERSION}-${BUILD_STRING}"
