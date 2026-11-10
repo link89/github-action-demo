@@ -15,6 +15,9 @@ ghcr.io/link89/cp2k:2026.2-dp320-tf219-pt210-cu129-mkl2025.3-ompi506-avx512-0
 - Mamba installs Python 3.12, CUDA 12.9, cuDNN 9, TensorFlow 2.19.1 (CUDA
   12.8 build, compatible with CUDA 12.9), PyTorch/libtorch 2.10 (CUDA 12.9,
   MKL variant), Intel oneAPI MKL 2025.3, and GCC/G++/GFortran 14.
+- cuSPARSELt uses conda-forge's `cusparselt=0.8.1.1` runtime package and
+  `cusparselt-dev=0.8.1.1` build package (headers and linker symlink). This
+  release provides CUDA 12 builds; newer releases require CUDA 13.
 - Only the MKL components of oneAPI are installed, not Intel MPI or Intel
   compilers. OpenMPI stays at the existing source-built version 5.0.6, with
   internal hwloc, libevent and PMIx. No conda MPI package is allowed.

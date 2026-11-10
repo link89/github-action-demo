@@ -17,4 +17,5 @@ unzip
 bzip2
 zlib
 cuda-toolkit
+cusparselt-dev=0.8.1.1
 mkl-devel=2025.3.*

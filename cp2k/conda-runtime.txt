@@ -3,7 +3,8 @@ python=3.12
 cuda-version=12.9
 cuda-libraries
 cudnn>=9.10,<10
-libcusparselt
+# 0.8.1.1 has CUDA 12 builds; newer releases require CUDA 13.
+cusparselt=0.8.1.1
 tensorflow=2.19.1=cuda128*
 pytorch=2.10.0=cuda129*
 libtorch=2.10.0=cuda129_mkl*
