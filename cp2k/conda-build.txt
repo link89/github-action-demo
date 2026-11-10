@@ -1,9 +1,5 @@
-gcc=14
-gxx=14
-gfortran=14
-gcc_linux-64=14
-gxx_linux-64=14
-gfortran_linux-64=14
+# This metapackage selects GCC/G++/GFortran 14 on linux-64.
+compilers=1.11.0
 cmake>=3.27,<4
 ninja
 make
