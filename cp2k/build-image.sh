@@ -2,12 +2,25 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
+: "${BUILD_VARIANT:?BUILD_VARIANT is required}"
+: "${VARIANT_SLUG:?VARIANT_SLUG is required}"
+: "${CP2K_ENABLE_CUDA:?CP2K_ENABLE_CUDA is required}"
+
+case "$CP2K_ENABLE_CUDA" in
+    0) ACCELERATION=CPU ;;
+    1) ACCELERATION=CUDA ;;
+    *)
+        echo "CP2K_ENABLE_CUDA must be 0 or 1" >&2
+        exit 1
+        ;;
+esac
+
+CP2K_GPU_ARCH="${CP2K_GPU_ARCH:-A100}"
+CP2K_CUDA_ARCHITECTURES="${CP2K_CUDA_ARCHITECTURES:-80;86;89;90}"
+
 NAME=cp2k
 VERSION=2026.2
 BUILD_ID=1
-# Only DeePMD has GPU support; the tag must not imply accelerated CP2K.
-# Keep the OpenMPI 5.0.x series visible because it affects cross-node jobs.
-BUILD_VARIANT=dp320-ompi50x-icelake
 BUILD_STRING="${BUILD_VARIANT}-${BUILD_ID}"
 BASE_IMAGE=condaforge/miniforge3:26.3.2-3
 DOCKER_TAG="${NAME}:${VERSION}-${BUILD_STRING}"
@@ -15,13 +28,17 @@ OWNER="${GITHUB_REPOSITORY_OWNER:-link89}"
 IMAGE_URL="ghcr.io/${OWNER,,}/${DOCKER_TAG}"
 STABLE_TAG="${NAME}:${VERSION}-${BUILD_VARIANT}"
 STABLE_IMAGE_URL="ghcr.io/${OWNER,,}/${STABLE_TAG}"
-SCRATCH="/mnt/scratch/${NAME}-${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-1}"
+SCRATCH="/mnt/scratch/${NAME}-${VARIANT_SLUG}-${GITHUB_RUN_ID:-local}-${GITHUB_RUN_ATTEMPT:-1}"
 REVISION="${GITHUB_SHA:-$(git rev-parse HEAD 2>/dev/null || true)}"
 
-printf 'Project: %s\nVersion: %s\nBuild string: %s\nImage: %s\nStable image: %s\nSource: %s\nRevision: %s\nPublish: %s\nScratch: %s\n' \
-    "$NAME" "$VERSION" "$BUILD_STRING" "$IMAGE_URL" "$STABLE_IMAGE_URL" \
-    "${GITHUB_REPOSITORY:-link89/github-action-demo}" "${REVISION:-unknown}" \
-    "${PUBLISH:-0}" "$SCRATCH"
+printf 'Project: %s\nVersion: %s\nBuild string: %s\nAcceleration: %s\nImage: %s\nStable image: %s\nSource: %s\nRevision: %s\nPublish: %s\nScratch: %s\n' \
+    "$NAME" "$VERSION" "$BUILD_STRING" "$ACCELERATION" "$IMAGE_URL" \
+    "$STABLE_IMAGE_URL" "${GITHUB_REPOSITORY:-link89/github-action-demo}" \
+    "${REVISION:-unknown}" "${PUBLISH:-0}" "$SCRATCH"
+if [[ "$CP2K_ENABLE_CUDA" == 1 ]]; then
+    printf 'CUDA toolchain target: %s\nCP2K CUDA architectures: %s\n' \
+        "$CP2K_GPU_ARCH" "$CP2K_CUDA_ARCHITECTURES"
+fi
 printf 'Base image: %s\n' "$BASE_IMAGE"
 printf '\nBuild node\n'
 printf 'Host: %s\nKernel: %s\nArchitecture: %s\nCPU cores: %s\nCPU model: %s\n' \
@@ -49,6 +66,9 @@ fi
 
 docker run --rm \
     -e SOURCE_COMMIT="$REVISION" \
+    -e CP2K_ENABLE_CUDA="$CP2K_ENABLE_CUDA" \
+    -e CP2K_GPU_ARCH="$CP2K_GPU_ARCH" \
+    -e CP2K_CUDA_ARCHITECTURES="$CP2K_CUDA_ARCHITECTURES" \
     --mount "type=bind,source=$SCRATCH,target=/mnt/scratch" \
     --mount "type=bind,source=$SCRATCH/conda,target=/usr/local" \
     --mount "type=bind,source=$PWD,target=/mnt/scripts,readonly" \
@@ -62,13 +82,31 @@ docker build . --build-context "dist=$SCRATCH/dist" --progress plain --tag "$DOC
     --label "org.opencontainers.image.ref.name=$IMAGE_URL" \
     --label "org.opencontainers.image.source=https://github.com/${GITHUB_REPOSITORY:-link89/github-action-demo}" \
     --label "org.opencontainers.image.revision=${REVISION:-unknown}"
-docker run --rm --mount "type=bind,source=$PWD,target=/mnt/scripts,readonly" \
+
+gpu_args=()
+if [[ "$CP2K_ENABLE_CUDA" == 1 ]] &&
+    [[ -e /dev/nvidia0 ]] &&
+    command -v nvidia-smi >/dev/null 2>&1 &&
+    nvidia-smi -L >/dev/null 2>&1; then
+    gpu_args=(--gpus all)
+fi
+
+docker run --rm "${gpu_args[@]}" \
+    --mount "type=bind,source=$PWD,target=/mnt/scripts,readonly" \
     "$DOCKER_TAG" /mnt/scripts/verify-runtime.sh
+
+can_run=0
 if grep -qw avx512f /proc/cpuinfo; then
-    docker run --rm --mount "type=bind,source=$PWD,target=/work,readonly" \
+    if [[ "$CP2K_ENABLE_CUDA" == 0 || ${#gpu_args[@]} -gt 0 ]]; then
+        can_run=1
+    fi
+fi
+if ((can_run)); then
+    docker run --rm "${gpu_args[@]}" \
+        --mount "type=bind,source=$PWD,target=/work,readonly" \
         --workdir /tmp -e OMP_NUM_THREADS=1 "$DOCKER_TAG" /work/smoke.inp -o /tmp/smoke.out
 else
-    echo 'Skipping CP2K input execution: this runner lacks AVX-512 (runtime linkage checks still run).'
+    echo 'Skipping CP2K input execution: runner lacks AVX-512 or the CUDA variant has no GPU.'
 fi
 
 if [[ "${PUBLISH:-}" == 1 ]]; then

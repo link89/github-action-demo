@@ -2,19 +2,20 @@
 
 ## CP2K: Miniforge + MKL
 
-`cp2k/make.sh` builds CP2K 2026.2 and DeePMD-kit 3.2.0 from source on
-`condaforge/miniforge3:26.3.2-3`. This replaces the previous NVIDIA base image
-and OpenBLAS build. The image tag is explicitly defined in `make.sh`:
+`cp2k/make-cpu.sh` and `cp2k/make-cuda.sh` build CP2K 2026.2 and DeePMD-kit
+3.2.0 from source on `condaforge/miniforge3:26.3.2-3`. The CPU and CUDA
+variants use separate tags:
 
 ```text
 ghcr.io/link89/cp2k:2026.2-dp320-ompi50x-icelake-1
+ghcr.io/link89/cp2k:2026.2-dp320-ompi50x-cu129-icelake-1
 ```
 
-The tag intentionally omits the CUDA version and MKL: CP2K is CPU-only in this
-image, GPU support is provided only by DeePMD's backends, and MKL is an
-internal BLAS implementation detail rather than a user-facing variant. The
-OpenMPI 5.0.x series remains in the tag because it determines MPI library
-compatibility for cross-node jobs.
+CUDA 12.9 remains in the CUDA tag because both CP2K and DeePMD are compiled
+with CUDA support. The CPU image omits it because its CP2K acceleration mode is
+`NONE`. MKL is omitted from both tags because it is an internal BLAS
+implementation detail. The OpenMPI 5.0.x series remains visible because it
+determines MPI library compatibility for cross-node jobs.
 
 ### Dependencies and build layout
 
@@ -36,7 +37,13 @@ compatibility for cross-node jobs.
 - CP2K uses LP64 sequential MKL BLAS/LAPACK and MKL ScaLAPACK with OpenMPI
   BLACS. As in upstream's toolchain, MPI-enabled libvdwxc requires standalone
   FFTW; the other auxiliary libraries are still built by the CP2K toolchain.
-  CP2K itself keeps `CP2K_USE_ACCEL=NONE`; GPU support is in DeePMD's backends.
+  The CPU image keeps `CP2K_USE_ACCEL=NONE`. The CUDA image uses
+  `CP2K_USE_ACCEL=CUDA`, `--enable-cuda=yes`, CUDA-enabled DBCSR and SPLA, and
+  links cuBLAS, cuFFT, CUDA runtime, and the host CUDA driver.
+- The CP2K CUDA compiler builds for compute capabilities `80;86;89;90`
+  (A100, A40/L40, and H100). The CP2K toolchain and DBCSR use `A100` as their
+  single GPU baseline; the same architecture list is passed to CP2K's CMake
+  configuration. This is independent of the Ice Lake-SP CPU baseline.
 - DeePMD's CMake configuration loads conda-forge's `ProtobufConfig.cmake`
   before TensorFlow and LibTorch discovery. This ensures the complete set of
   `protobuf::` imported targets exists before framework configs can define a
@@ -76,6 +83,7 @@ by an `.inp` argument as a CP2K input.
 
 ```bash
 IMAGE=ghcr.io/link89/cp2k:2026.2-dp320-ompi50x-icelake-1
+CUDA_IMAGE=ghcr.io/link89/cp2k:2026.2-dp320-ompi50x-cu129-icelake-1
 docker run --rm -v "$PWD:/work" -e OMP_NUM_THREADS=4 "$IMAGE" cp2k.inp
 docker run --rm -v "$PWD:/work" -e OMP_NUM_THREADS=4 "$IMAGE" \
   cp2k cp2k.inp
@@ -84,10 +92,12 @@ docker run --rm -v "$PWD:/work" -e OMP_NUM_THREADS=4 "$IMAGE" \
 docker run --rm -v "$PWD:/work" -e OMP_NUM_THREADS=2 "$IMAGE" \
   mpiexec --bind-to none -np 4 cp2k -i cp2k.inp -o cp2k.out
 docker run --rm "$IMAGE" cp2k.psmp --version
+docker run --rm --gpus all -v "$PWD:/work" "$CUDA_IMAGE" cp2k cp2k.inp
 ```
 
-For GPU-enabled DeePMD inference, install NVIDIA Container Toolkit on the host,
-use a driver compatible with CUDA 12.9, and add `--gpus all` to `docker run`.
+For the CUDA image or GPU-enabled DeePMD inference, install NVIDIA Container
+Toolkit on the host, use a driver compatible with CUDA 12.9, and add
+`--gpus all` to `docker run`.
 Ordinary commands and CP2K executables without an input file run unchanged,
 e.g. `docker run --rm -it "$IMAGE" bash` or `docker run --rm "$IMAGE"
 cp2k.psmp`. Without arguments, the container displays CP2K help.
@@ -110,16 +120,18 @@ them in the environment when the defaults are unsuitable.
 
 ### CI validation
 
-PRs only build and test; only pushes to `main` can publish. The final image is
-checked for missing libraries, MKL/OpenMPI linkage, framework versions and ABI,
-and backend plugin loading. AVX-512-capable runners additionally execute CP2K's
-smoke regressions, the included H2 input in serial and with two MPI ranks, and
-the direct `.inp` and `cp2k <input>` entrypoint forms. Other runners explicitly
-skip binary execution instead of ignoring test failures. GPU tests are not run
-on hosted CPU runners.
+PRs only build and test; only pushes to `main` can publish. The CPU and CUDA
+variants run as parallel matrix jobs. Both images are checked for missing
+libraries, MKL/OpenMPI linkage, framework versions and ABI, backend plugin
+loading, and the expected CP2K acceleration mode. AVX-512-capable runners
+execute the CPU image's smoke regressions and entrypoint forms. The CUDA image
+is compiled and checked for CUDA linkage, but hosted CPU runners have no GPU and
+therefore skip CUDA execution. GPU execution must be validated on a machine
+with a compatible driver and `--gpus all`.
 
 References:
 
 - <https://github.com/cp2k/cp2k/blob/master/tools/docker/Dockerfile.test_gcc-mkl-psmp>
+- <https://github.com/cp2k/cp2k/blob/master/tools/docker/Dockerfile.test_cuda_A40>
 - <https://github.com/conda-forge/cp2k-feedstock>
 - <https://docs.deepmodeling.com/projects/deepmd/en/v3.2.0/install/install-from-source.html>

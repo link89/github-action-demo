@@ -7,6 +7,7 @@ on:
 
 jobs:
   build:
+    name: Build ${{ matrix.variant }}
     permissions:
       packages: write
       contents: read
@@ -16,9 +17,14 @@ jobs:
       BUILD_SCRIPT: ${{ matrix.script }}
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
+      max-parallel: 2
       matrix:
-        script:
-          - cp2k/make.sh
+        include:
+          - variant: cpu
+            script: cp2k/make-cpu.sh
+          - variant: cuda
+            script: cp2k/make-cuda.sh
     steps:
       - name: Free Disk Space (Ubuntu)
         uses: jlumbroso/free-disk-space@main
@@ -44,6 +50,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: cp2k-conda-locks
-          path: /mnt/scratch/cp2k-${{ github.run_id }}-${{ github.run_attempt }}/dist/*-explicit.txt
+          name: cp2k-${{ matrix.variant }}-conda-locks
+          path: /mnt/scratch/cp2k-${{ matrix.variant }}-${{ github.run_id }}-${{ github.run_attempt }}/dist/*-explicit.txt
           if-no-files-found: ignore
