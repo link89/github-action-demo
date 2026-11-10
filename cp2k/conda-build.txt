@@ -11,6 +11,7 @@ curl
 wget
 unzip
 bzip2
+xz
 zlib
 # PyTorch 2.12 requires the CUDA 12.9.2 libraries. Avoid the full cuda-toolkit
 # metapackage because cuda-tools pulls nsight-compute, whose krb5<1.22 pin
