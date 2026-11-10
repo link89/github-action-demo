@@ -84,10 +84,6 @@ CP2K_SRC=/mnt/scratch/cp2k-2026.2
 # The toolchain requires PWD to match its physical source directory.
 CP2K_SRC=$(cd "$CP2K_SRC" && pwd -P)
 
-pushd "$CP2K_SRC"
-git apply /mnt/scripts/mkl-layout.patch
-popd
-
 toolchain_args=(
     -j "$(nproc)"
     --target-cpu=icelake-server

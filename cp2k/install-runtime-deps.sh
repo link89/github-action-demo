@@ -7,6 +7,7 @@ touch /usr/local/conda-meta/history
 /opt/conda/bin/mamba install -y --prefix /usr/local --file /tmp/runtime-explicit.txt
 mkdir -p /usr/local/share/cp2k
 mv /tmp/runtime-explicit.txt /usr/local/share/cp2k/runtime-explicit.txt
+/mnt/scripts/install-mkl-layout.sh /usr/local
 
 # Remove downloaded packages, repodata, indexes, and temporary files in the
 # same Docker layer that installs the runtime environment.
