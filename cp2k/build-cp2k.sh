@@ -51,10 +51,11 @@ BUILD_DIR=/mnt/scratch/cp2k-build
 ARCH_FLAGS='-O3 -g -march=skylake-avx512 -mtune=skylake-avx512'
 # Upstream Release adds -march=native. RelWithDebInfo lets us explicitly
 # select the target CPU for all three languages without host CPU overrides.
+# Do not override CMAKE_INSTALL_LIBDIR here: CP2K declares it as a cache PATH,
+# so a relative command-line value resolves against CP2K's source directory.
 cmake -S "$CP2K_SRC" -B "$BUILD_DIR" -G Ninja \
     -DCMAKE_BUILD_TYPE=RelWithDebInfo \
     -DCMAKE_INSTALL_PREFIX=/usr/local \
-    -DCMAKE_INSTALL_LIBDIR=lib \
     -DCMAKE_C_COMPILER="$CC" -DCMAKE_CXX_COMPILER="$CXX" \
     -DCMAKE_Fortran_COMPILER="$FC" \
     -DCMAKE_C_FLAGS_RELWITHDEBINFO="$ARCH_FLAGS" \
@@ -80,6 +81,7 @@ DIST=/mnt/scratch/dist/usr/local
 # Include staged libcp2k when resolving the installed executable's dependencies.
 export LD_LIBRARY_PATH="$DIST/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
 mkdir -p "$DIST/lib" "$DIST/include"
+test -e "$DIST/lib/libcp2k.so"
 cp -a /usr/local/lib/libdeepmd*.so* "$DIST/lib/"
 cp -a /usr/local/include/deepmd "$DIST/include/"
 
