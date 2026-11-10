@@ -134,6 +134,10 @@ cmake_args=(
     -DCP2K_USE_SIRIUS_VCSQNM=ON
     -DCP2K_USE_SIRIUS_DFTD3=ON -DCP2K_USE_SIRIUS_DFTD4=ON
     -DCP2K_USE_ACCEL="$cp2k_accel"
+    # CUDA-enabled LibTorch can enable the CUDA language from its CMake package
+    # even for CPU builds. CMake requires every generated CUDA target,
+    # including FindOpenMP try_compile probes, to have architectures.
+    -DCMAKE_CUDA_ARCHITECTURES="$CP2K_CUDA_ARCHITECTURES"
     -DCP2K_BLAS_VENDOR=MKL -DCP2K_SCALAPACK_VENDOR=MKL
     -DCP2K_BLAS_INTERFACE=32bits -DCP2K_BLAS_THREADING=sequential
     -DCP2K_USE_FFTW3_WITH_MKL=ON
@@ -145,7 +149,6 @@ cmake_args=(
 if [[ "$CP2K_ENABLE_CUDA" == 1 ]]; then
     cmake_args+=(
         -DCMAKE_CUDA_COMPILER="$NVCC"
-        -DCMAKE_CUDA_ARCHITECTURES="$CP2K_CUDA_ARCHITECTURES"
         -DCUDAToolkit_ROOT=/usr/local
         -DSPLA_ROOT="${SPLA_ROOT}-cuda"
         -DCP2K_USE_SPLA_GEMM_OFFLOADING=ON
@@ -155,10 +158,8 @@ fi
 cmake "${cmake_args[@]}"
 grep -q '^CP2K_BLAS_VENDOR:STRING=MKL$' "$BUILD_DIR/CMakeCache.txt"
 grep -Fq "CP2K_USE_ACCEL:STRING=$cp2k_accel" "$BUILD_DIR/CMakeCache.txt"
-if [[ "$CP2K_ENABLE_CUDA" == 1 ]]; then
-    grep -Fq "CMAKE_CUDA_ARCHITECTURES:STRING=$CP2K_CUDA_ARCHITECTURES" \
-        "$BUILD_DIR/CMakeCache.txt"
-fi
+grep -Fq "CMAKE_CUDA_ARCHITECTURES:STRING=$CP2K_CUDA_ARCHITECTURES" \
+    "$BUILD_DIR/CMakeCache.txt"
 cmake --build "$BUILD_DIR" --parallel "$(nproc)"
 DESTDIR=/mnt/scratch/dist cmake --install "$BUILD_DIR"
 

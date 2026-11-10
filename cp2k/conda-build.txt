@@ -13,6 +13,9 @@ unzip
 bzip2
 zlib
 cuda-toolkit
+# cuda-nvtx contains only the runtime library; its headers are packaged
+# separately and are required by SIRIUS CUDA builds.
+cuda-nvtx-dev=12.9.79
 cusparselt-dev=0.8.1.1
 mkl-devel=2025.3.*
 openmpi-mpicc=5.0.*
