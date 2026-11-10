@@ -1,0 +1,21 @@
+# CUDA 12 uses split packages; the legacy cudatoolkit package stops at CUDA 11.
+python=3.12
+cuda-version=12.9
+cuda-libraries
+cudnn>=9.10,<10
+libcusparselt
+tensorflow=2.19.1=cuda128*
+pytorch=2.10.0=cuda129*
+libtorch=2.10.0=cuda129_mkl*
+numpy<2
+# Intel oneAPI MKL only: do not introduce Intel MPI or Intel compilers.
+mkl=2025.3.*
+libblas=*=*mkl
+liblapack=*=*mkl
+libgcc>=14
+libstdcxx>=14
+libgfortran5>=14
+ucx
+libfabric
+rdma-core
+openssh

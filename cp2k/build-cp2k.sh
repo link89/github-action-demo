@@ -2,21 +2,32 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-printf 'Building cp2k 2026.2-dp320-cu129-omp-avx512, source %s\n' \
+printf 'Building cp2k 2026.2 with conda/MKL, source %s\n' \
     "${SOURCE_COMMIT:-unknown}"
 df -h /mnt/scratch
 mount | grep '/mnt/scratch' || true
 
 ./install-build-deps.sh
+source /opt/conda/etc/profile.d/conda.sh
+conda activate /usr/local
+export PYTHONNOUSERSITE=1
+export MKLROOT=/usr/local
+export CMAKE_PREFIX_PATH=/usr/local
+export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig
+printf '%s\n' /usr/local/lib /usr/local/lib64 \
+    /usr/local/lib/python3.12/site-packages/torch/lib \
+    /usr/local/lib/python3.12/site-packages/tensorflow \
+    /usr/local/targets/x86_64-linux/lib > /etc/ld.so.conf.d/cp2k-conda.conf
+ldconfig
+./build-openmpi.sh
 test "$(command -v mpicc)" = /usr/local/bin/mpicc
 test "$(command -v mpifort)" = /usr/local/bin/mpifort
 mpicc --showme:link
 export CC=${CC:-gcc} CXX=${CXX:-g++} FC=${FC:-gfortran}
 export F77=${F77:-gfortran} F90=${F90:-gfortran}
-export OMPI_CC=${OMPI_CC:-gcc} OMPI_CXX=${OMPI_CXX:-g++} OMPI_FC=${OMPI_FC:-gfortran}
-export PYTHONPATH=/mnt/scratch/python
+export OMPI_CC="$CC" OMPI_CXX="$CXX" OMPI_FC="$FC"
 export TMPDIR=/mnt/scratch/tmp
-mkdir -p "$PYTHONPATH" "$TMPDIR"
+mkdir -p "$TMPDIR"
 
 ./build-deepmd.sh
 
@@ -29,7 +40,7 @@ CP2K_SRC=/mnt/scratch/cp2k-2026.2
 CP2K_SRC=$(cd "$CP2K_SRC" && pwd -P)
 
 pushd "$CP2K_SRC"
-git apply /mnt/scripts/openblas-target.patch
+git apply /mnt/scripts/mkl-layout.patch
 popd
 
 pushd "$CP2K_SRC/tools/toolchain"
@@ -39,8 +50,11 @@ pushd "$CP2K_SRC/tools/toolchain"
     --with-cusolvermp=no \
     --enable-cuda=no \
     --with-gcc=system \
+    --with-intel=no \
     --with-deepmd=/usr/local \
-    --with-openblas=install \
+    --with-libtorch=/usr/local \
+    --with-mkl=system \
+    --with-openblas=no \
     --with-openmpi=system
 popd
 
@@ -70,10 +84,14 @@ cmake -S "$CP2K_SRC" -B "$BUILD_DIR" -G Ninja \
     -DCP2K_USE_SIRIUS_VCSQNM=ON \
     -DCP2K_USE_SIRIUS_DFTD3=ON -DCP2K_USE_SIRIUS_DFTD4=ON \
     -DCP2K_USE_ACCEL=NONE \
-    -DCP2K_BLAS_VENDOR=OpenBLAS \
+    -DCP2K_BLAS_VENDOR=MKL -DCP2K_SCALAPACK_VENDOR=MKL \
+    -DCP2K_BLAS_INTERFACE=32bits -DCP2K_BLAS_THREADING=sequential \
+    -DCP2K_USE_FFTW3_WITH_MKL=ON \
+    -DMKL_ROOT=/usr/local \
     -DDeePMD_DIR=/usr/local/lib/cmake/DeePMD \
     -DCP2K_DATA_DIR=/usr/local/share/cp2k/data \
     -DBUILD_SHARED_LIBS=ON
+grep -q '^CP2K_BLAS_VENDOR:STRING=MKL$' "$BUILD_DIR/CMakeCache.txt"
 cmake --build "$BUILD_DIR" --parallel "$(nproc)"
 DESTDIR=/mnt/scratch/dist cmake --install "$BUILD_DIR"
 
@@ -96,17 +114,20 @@ awk -v prefix="$CP2K_SRC/tools/toolchain/install/" \
     while IFS= read -r library; do cp -aL "$library" "$DIST/lib/"; done
 
 test -s "$DIST/share/cp2k/data/BASIS_MOLOPT"
-# The AVX-512 regression run is diagnostic on GitHub-hosted runners.
-mkdir -p /mnt/scratch/regtest
-CP2K_DATA_DIR="$DIST/share/cp2k/data" ./tests/do_regtest.py \
-    --mpiexec "mpiexec --bind-to none" --maxtasks 4 \
-    --workbasedir /mnt/scratch/regtest "$@" "$DIST/bin" psmp || true
+# Do not hide regressions on runners that can execute the AVX-512 binary.
+if grep -qw avx512f /proc/cpuinfo; then
+    mkdir -p /mnt/scratch/regtest
+    OMPI_ALLOW_RUN_AS_ROOT=1 OMPI_ALLOW_RUN_AS_ROOT_CONFIRM=1 OMP_NUM_THREADS=1 \
+        CP2K_DATA_DIR="$DIST/share/cp2k/data" ./tests/do_regtest.py \
+        --mpiexec "mpiexec --bind-to none" --maxtasks 4 --smoketest \
+        --workbasedir /mnt/scratch/regtest "$@" "$DIST/bin" psmp
+else
+    echo 'Skipping CP2K regression execution: runner lacks AVX-512.'
+fi
 popd
 
-# Preserve the exact Python packages that DeePMD linked against.
-PYTHON_LIB=/usr/local/lib/python3.10/dist-packages
-mkdir -p "/mnt/scratch/dist${PYTHON_LIB}"
-cp -a "$PYTHONPATH/." "/mnt/scratch/dist${PYTHON_LIB}/"
+# Locks are kept alongside the installed data for later provenance checks.
+cp /mnt/scratch/dist/*-explicit.txt "$DIST/share/cp2k/"
 
 printf 'Built libraries:\n'
 ldd "$DIST/bin/cp2k.psmp"

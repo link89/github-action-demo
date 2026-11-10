@@ -1,16 +1,18 @@
 #!/bin/bash
 set -euo pipefail
 
-"$(dirname "$0")/install-runtime-deps.sh"
+export CONDA_OVERRIDE_CUDA=12.9
+export CONDA_PKGS_DIRS=/mnt/scratch/conda-pkgs
+mkdir -p /mnt/scratch/dist
 
-apt-get update -qq
-apt-get install -qq --no-install-recommends \
-    g++ gcc gfortran git m4 make patch pkg-config \
-    bzip2 curl openssh-client python3-dev python3-pip unzip wget zlib1g-dev \
-    libmunge-dev libucx-dev libibverbs-dev librdmacm-dev
-apt-get clean
-rm -rf /var/lib/apt/lists/*
-
-python3 -m pip install --no-cache-dir 'cmake>=3.25.2,<4' ninja
-
-"$(dirname "$0")/build-openmpi.sh"
+# Solve the build and runtime together; the runtime lock selects a dependency
+# closure from these exact packages, not a second potentially different solve.
+mkdir -p /usr/local/conda-meta
+touch /usr/local/conda-meta/history
+/opt/conda/bin/mamba install -y --prefix /usr/local \
+    --override-channels -c conda-forge --strict-channel-priority \
+    --file /mnt/scripts/conda-runtime.txt --file /mnt/scripts/conda-build.txt
+/opt/conda/bin/conda list --prefix /usr/local --explicit \
+    > /mnt/scratch/dist/build-explicit.txt
+/usr/local/bin/python /mnt/scripts/export-runtime-lock.py \
+    /usr/local /mnt/scripts/conda-runtime.txt /mnt/scratch/dist/runtime-explicit.txt

@@ -1,0 +1,14 @@
+diff --git a/tools/toolchain/scripts/stage2/install_mkl.sh b/tools/toolchain/scripts/stage2/install_mkl.sh
+--- a/tools/toolchain/scripts/stage2/install_mkl.sh
++++ b/tools/toolchain/scripts/stage2/install_mkl.sh
+@@ -62,6 +62,10 @@
+       ;;
+   esac
+   mkl_lib_dir="${MKLROOT}/lib/${mkl_arch_dir}"
++  # conda-forge installs oneMKL libraries directly in PREFIX/lib.
++  if [ ! -d "${mkl_lib_dir}" ] && [ -f "${MKLROOT}/lib/libmkl_core.so" ]; then
++    mkl_lib_dir="${MKLROOT}/lib"
++  fi
+   # check we have required libraries
+   if [ ${with_intel} != "__DONTUSE__" ]; then
+     mkl_interface_lib="mkl_intel_lp64"

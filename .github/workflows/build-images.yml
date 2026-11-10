@@ -39,3 +39,11 @@ jobs:
           GITHUB_TOKEN: ${{ github.event_name == 'push' && secrets.GITHUB_TOKEN || '' }}
         run: |
           "$BUILD_SCRIPT"
+
+      - name: Upload dependency locks
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cp2k-conda-locks
+          path: /mnt/scratch/cp2k-${{ github.run_id }}-${{ github.run_attempt }}/dist/*-explicit.txt
+          if-no-files-found: ignore
