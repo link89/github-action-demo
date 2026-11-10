@@ -38,6 +38,8 @@ test -e /usr/local/lib/libdeepmd_backend_pt.so
 test -e /usr/local/lib/libdeepmd_backend_tf.so
 
 /usr/local/bin/python ./verify-frameworks.py
+/usr/local/bin/python -c 'import Cython; print(f"Cython {Cython.__version__}")'
+test -x /usr/local/bin/cython
 /usr/local/bin/python - <<'PY'
 import ctypes
 for backend in ('tf', 'pt'):
@@ -52,8 +54,9 @@ if grep -qw avx512f /proc/cpuinfo; then
     cd "$work"
     export OMP_NUM_THREADS=1
     cp2k --version
-    cp2k -i "$input" -o serial.out
+    /usr/local/bin/entrypoint.sh cp2k "$input" -o serial.out
     grep -q 'ENERGY| Total FORCE_EVAL' serial.out
+    /usr/local/bin/entrypoint.sh cp2k.psmp --version
     mpiexec --bind-to none --oversubscribe -np 2 cp2k -i "$input" -o mpi.out
     grep -q 'ENERGY| Total FORCE_EVAL' mpi.out
 else

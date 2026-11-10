@@ -14,7 +14,9 @@ ghcr.io/link89/cp2k:2026.2-dp320-cu129-mkl-ompi-icelake-1
 
 - Mamba installs Python 3.12, CUDA 12.9, cuDNN 9, TensorFlow 2.19.1 (CUDA
   12.8 build, compatible with CUDA 12.9), PyTorch/libtorch 2.10 (CUDA 12.9,
-  MKL variant), Intel oneAPI MKL 2025.3, and GCC/G++/GFortran 14.
+  MKL variant), Intel oneAPI MKL 2025.3, Cython, and GCC/G++/GFortran 14.
+  Cython comes from conda-forge in the runtime prefix, so both its Python
+  module and command are available without pip.
   The compiler toolchain uses the `compilers=1.11.0` metapackage, which selects
   all three GCC 14 compiler wrappers on linux-64. CUDA development and MKL
   development dependencies use the `cuda-toolkit` and `mkl-devel` metapackages.
@@ -63,19 +65,26 @@ it does not establish GPU compatibility or model accuracy.
 
 The build targets Ice Lake-SP using explicit `icelake-server` flags for CP2K
 and its toolchain dependencies. Mount the calculation directory read/write;
-the entrypoint treats an `.inp` argument as a CP2K input.
+the entrypoint treats a direct `.inp` argument or a CP2K executable followed
+by an `.inp` argument as a CP2K input.
 
 ```bash
 IMAGE=ghcr.io/link89/cp2k:2026.2-dp320-cu129-mkl-ompi-icelake-1
 docker run --rm -v "$PWD:/work" -e OMP_NUM_THREADS=4 "$IMAGE" cp2k.inp
+docker run --rm -v "$PWD:/work" -e OMP_NUM_THREADS=4 "$IMAGE" \
+  cp2k cp2k.inp
+docker run --rm -v "$PWD:/work" -e OMP_NUM_THREADS=4 "$IMAGE" \
+  cp2k.psmp cp2k.inp -o cp2k.out
 docker run --rm -v "$PWD:/work" -e OMP_NUM_THREADS=2 "$IMAGE" \
   mpiexec --bind-to none -np 4 cp2k -i cp2k.inp -o cp2k.out
+docker run --rm "$IMAGE" cp2k.psmp --version
 ```
 
 For GPU-enabled DeePMD inference, install NVIDIA Container Toolkit on the host,
 use a driver compatible with CUDA 12.9, and add `--gpus all` to `docker run`.
-Ordinary commands still work, e.g. `docker run --rm -it "$IMAGE" bash`.
-Without arguments, the container displays CP2K help.
+Ordinary commands and CP2K executables without an input file run unchanged,
+e.g. `docker run --rm -it "$IMAGE" bash` or `docker run --rm "$IMAGE"
+cp2k.psmp`. Without arguments, the container displays CP2K help.
 
 ### CI validation
 
@@ -83,8 +92,9 @@ PRs only build and test; only pushes to `main` can publish. The final image is
 checked for missing libraries, MKL/OpenMPI linkage, framework versions and ABI,
 and backend plugin loading. AVX-512-capable runners additionally execute CP2K's
 smoke regressions, the included H2 input in serial and with two MPI ranks, and
-the direct `.inp` entrypoint. Other runners explicitly skip binary execution
-instead of ignoring test failures. GPU tests are not run on hosted CPU runners.
+the direct `.inp` and `cp2k <input>` entrypoint forms. Other runners explicitly
+skip binary execution instead of ignoring test failures. GPU tests are not run
+on hosted CPU runners.
 
 References:
 

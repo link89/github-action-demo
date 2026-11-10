@@ -1,5 +1,7 @@
 # CUDA 12 uses split packages; the legacy cudatoolkit package stops at CUDA 11.
 python=3.12
+# Keep Cython available in the final image without falling back to pip.
+cython
 cuda-version=12.9
 cuda-libraries
 cudnn>=9.10,<10
