@@ -8,8 +8,13 @@ df -h /mnt/scratch
 mount | grep '/mnt/scratch' || true
 
 ./install-build-deps.sh
+# Conda activation hooks may read optional variables before testing whether
+# they are set (for example CUDA's NVCC_PREPEND_FLAGS). Keep errexit/pipefail,
+# but disable nounset while loading third-party activation scripts.
+set +u
 source /opt/conda/etc/profile.d/conda.sh
 conda activate /usr/local
+set -u
 export PYTHONNOUSERSITE=1
 export MKLROOT=/usr/local
 export CMAKE_PREFIX_PATH=/usr/local
