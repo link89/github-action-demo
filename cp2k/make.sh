@@ -6,7 +6,8 @@ NAME=cp2k
 VERSION=2026.2
 BUILD_ID=1
 # Only DeePMD has GPU support; the tag must not imply accelerated CP2K.
-BUILD_VARIANT=dp320-ompi-icelake
+# Keep the OpenMPI 5.0.x series visible because it affects cross-node jobs.
+BUILD_VARIANT=dp320-ompi50x-icelake
 BUILD_STRING="${BUILD_VARIANT}-${BUILD_ID}"
 BASE_IMAGE=condaforge/miniforge3:26.3.2-3
 DOCKER_TAG="${NAME}:${VERSION}-${BUILD_STRING}"

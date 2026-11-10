@@ -7,12 +7,14 @@
 and OpenBLAS build. The image tag is explicitly defined in `make.sh`:
 
 ```text
-ghcr.io/link89/cp2k:2026.2-dp320-ompi-icelake-1
+ghcr.io/link89/cp2k:2026.2-dp320-ompi50x-icelake-1
 ```
 
 The tag intentionally omits the CUDA version and MKL: CP2K is CPU-only in this
 image, GPU support is provided only by DeePMD's backends, and MKL is an
-internal BLAS implementation detail rather than a user-facing variant.
+internal BLAS implementation detail rather than a user-facing variant. The
+OpenMPI 5.0.x series remains in the tag because it determines MPI library
+compatibility for cross-node jobs.
 
 ### Dependencies and build layout
 
@@ -73,7 +75,7 @@ the entrypoint treats a direct `.inp` argument or a CP2K executable followed
 by an `.inp` argument as a CP2K input.
 
 ```bash
-IMAGE=ghcr.io/link89/cp2k:2026.2-dp320-ompi-icelake-1
+IMAGE=ghcr.io/link89/cp2k:2026.2-dp320-ompi50x-icelake-1
 docker run --rm -v "$PWD:/work" -e OMP_NUM_THREADS=4 "$IMAGE" cp2k.inp
 docker run --rm -v "$PWD:/work" -e OMP_NUM_THREADS=4 "$IMAGE" \
   cp2k cp2k.inp
@@ -98,10 +100,10 @@ a Dockerfile or Compose image reference:
 
 ```bash
 python3 scripts/build-sif.py \
-  ghcr.io/link89/cp2k:2026.2-dp320-ompi-icelake-1
+  ghcr.io/link89/cp2k:2026.2-dp320-ompi50x-icelake-1
 ```
 
-This creates `cp2k-2026.2-dp320-ompi-icelake-1.sif` and reuses
+This creates `cp2k-2026.2-dp320-ompi50x-icelake-1.sif` and reuses
 `./tmp-oci` by default. Pass an output path or `--oci-dir` to override them.
 The script does not set Apptainer cache or temporary-directory variables; set
 them in the environment when the defaults are unsuitable.
