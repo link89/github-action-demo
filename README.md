@@ -37,6 +37,9 @@ determines MPI library compatibility for cross-node jobs.
 - CP2K uses LP64 sequential MKL BLAS/LAPACK and MKL ScaLAPACK with OpenMPI
   BLACS. As in upstream's toolchain, MPI-enabled libvdwxc requires standalone
   FFTW; the other auxiliary libraries are still built by the CP2K toolchain.
+  Conda installs MKL under `/usr/local/lib`; the build creates
+  `/usr/local/lib/intel64{,_lin}` compatibility links because CP2K and SpFFT
+  CMake finders only search the Intel installation layout.
   The CPU image keeps `CP2K_USE_ACCEL=NONE`. The CUDA image uses
   `CP2K_USE_ACCEL=CUDA`, `--enable-cuda=yes`, CUDA-enabled DBCSR and SPLA, and
   links cuBLAS, cuFFT, CUDA runtime, and the host CUDA driver.
