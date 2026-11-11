@@ -44,6 +44,9 @@ cmake -S "$SOURCE/source" -B /mnt/scratch/deepmd-build -G Ninja \
     -DUSE_CUDA_TOOLKIT=ON -DCUDAToolkit_ROOT=/usr/local \
     -DCUDNN_ROOT=/usr/local -DCUSPARSELT_ROOT=/usr/local \
     -DCAFFE2_USE_CUDNN=ON -DCAFFE2_USE_CUSPARSELT=ON \
+    -DCAFFE2_STATIC_LINK_CUDA=OFF \
+    -DCUDA_USE_STATIC_CUDA_RUNTIME=OFF \
+    -DCMAKE_CUDA_RUNTIME_LIBRARY=Shared \
     -DCMAKE_INSTALL_RPATH='/usr/local/lib;/usr/local/lib/python3.12/site-packages/torch/lib' \
     -DCMAKE_CUDA_ARCHITECTURES='80;86;89;90' \
     -DOP_CXX_ABI=1
