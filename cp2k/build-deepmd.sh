@@ -26,37 +26,25 @@ for source in DataModifierTF.cc DeepTensorTF.cc; do
     grep -Fq '#include "device.h"' "$DEEPMD_API_SRC/$source"
 done
 
-python3 -m pip install --no-cache-dir --target "$PYTHONPATH" \
-    --extra-index-url https://download.pytorch.org/whl/cu129 \
-    'torch==2.10.0+cu129' 'tensorflow==2.17.0' 'numpy<2'
-
-# Both framework wheels must expose the new libstdc++ C++11 ABI.
-python3 - <<'PY'
-import tensorflow as tf
-import torch
-
-tf_flags = tf.sysconfig.get_compile_flags()
-tf_abi = next((flag.split('=')[-1] for flag in tf_flags if '_GLIBCXX_USE_CXX11_ABI=' in flag), None)
-torch_abi = int(torch._C._GLIBCXX_USE_CXX11_ABI)
-print(f'TensorFlow {tf.__version__}: CXX11 ABI={tf_abi}')
-print(f'PyTorch {torch.__version__}: CXX11 ABI={torch_abi}')
-if tf.__version__ != '2.17.0' or torch.__version__ != '2.10.0+cu129':
-    raise SystemExit('Framework version mismatch')
-if tf_abi != '1' or torch_abi != 1:
-    raise SystemExit('TensorFlow and PyTorch must both use CXX11 ABI=1')
-PY
+/usr/local/bin/python /mnt/scripts/verify-frameworks.py
+TORCH_CMAKE_PREFIX_PATH=$(/usr/local/bin/python -c 'import torch; print(torch.utils.cmake_prefix_path)')
 
 cmake -S "$SOURCE/source" -B /mnt/scratch/deepmd-build -G Ninja \
     -DCMAKE_BUILD_TYPE=Release \
     -DCMAKE_INSTALL_PREFIX=/usr/local \
-    -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ \
+    -DCMAKE_C_COMPILER="$CC" -DCMAKE_CXX_COMPILER="$CXX" \
     -DMPI_C_COMPILER=/usr/local/bin/mpicc \
     -DMPI_CXX_COMPILER=/usr/local/bin/mpicxx \
     -DCMAKE_CXX_FLAGS=-D_GLIBCXX_USE_CXX11_ABI=1 \
+    -DCMAKE_PROJECT_INCLUDE=/mnt/scripts/cmake-preload-protobuf.cmake \
     -DBUILD_CPP_IF=ON -DBUILD_PY_IF=OFF \
     -DENABLE_TENSORFLOW=ON -DUSE_TF_PYTHON_LIBS=ON \
     -DENABLE_PYTORCH=ON -DUSE_PT_PYTHON_LIBS=ON \
-    -DUSE_CUDA_TOOLKIT=ON -DCUDAToolkit_ROOT=/usr/local/cuda \
+    -DCMAKE_PREFIX_PATH="$TORCH_CMAKE_PREFIX_PATH;/usr/local" \
+    -DUSE_CUDA_TOOLKIT=ON -DCUDAToolkit_ROOT=/usr/local \
+    -DCUDNN_ROOT=/usr/local -DCUSPARSELT_ROOT=/usr/local \
+    -DCAFFE2_USE_CUDNN=ON -DCAFFE2_USE_CUSPARSELT=ON \
+    -DCMAKE_INSTALL_RPATH='/usr/local/lib;/usr/local/lib/python3.12/site-packages/torch/lib' \
     -DCMAKE_CUDA_ARCHITECTURES='80;86;89;90' \
     -DOP_CXX_ABI=1
 cmake --build /mnt/scratch/deepmd-build --parallel "$(nproc)"

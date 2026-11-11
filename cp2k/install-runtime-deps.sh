@@ -1,19 +1,23 @@
 #!/bin/bash
 set -euo pipefail
 
-apt-get update -qq
-apt-get install -qq --no-install-recommends \
-    ca-certificates libgfortran5 libgomp1 libmunge2 libquadmath0 \
-    libucx0 libibverbs1 librdmacm1 rdma-core libmlx5-1 python3
-apt-get clean
-rm -rf /var/lib/apt/lists/*
+export CONDA_OVERRIDE_CUDA=12.9
+mkdir -p /usr/local/conda-meta
+touch /usr/local/conda-meta/history
+/opt/conda/bin/mamba install -y --prefix /usr/local --file /tmp/runtime-explicit.txt
+mkdir -p /usr/local/share/cp2k
+mv /tmp/runtime-explicit.txt /usr/local/share/cp2k/runtime-explicit.txt
+/mnt/scripts/install-mkl-layout.sh /usr/local
 
-PYTHON_LIB=/usr/local/lib/python3.10/dist-packages
+# Remove downloaded packages, repodata, indexes, and temporary files in the
+# same Docker layer that installs the runtime environment.
+/opt/conda/bin/mamba clean --all --yes
+rm -rf /opt/conda/pkgs/* /root/.cache /root/.conda /tmp/* /var/tmp/*
+
+PYTHON_LIB=/usr/local/lib/python3.12/site-packages
 {
     printf '%s\n' /usr/local/lib /usr/local/lib64
     printf '%s\n' "$PYTHON_LIB/torch/lib" "$PYTHON_LIB/tensorflow"
-    if [[ -d "$PYTHON_LIB/nvidia" ]]; then
-        find "$PYTHON_LIB/nvidia" -type d -name lib -print
-    fi
+    printf '%s\n' /usr/local/targets/x86_64-linux/lib
 } > /etc/ld.so.conf.d/deepmd-frameworks.conf
 ldconfig
