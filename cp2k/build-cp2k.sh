@@ -203,7 +203,14 @@ printf '%s\n' "$cp2k_variant" > "$DIST/share/cp2k/build-variant"
 
 # ldd traverses transitive dependencies, including libcp2k's toolchain libraries.
 ldd "$DIST/bin/cp2k.psmp" | tee /mnt/scratch/cp2k-ldd
-if grep -q 'not found' /mnt/scratch/cp2k-ldd; then
+unexpected_missing=$(grep 'not found' /mnt/scratch/cp2k-ldd || true)
+if [[ "$CP2K_ENABLE_CUDA" == 1 ]]; then
+    # The build container has no GPU, so the host driver's libcuda is expected
+    # to be absent. NVIDIA container runtime injects it in the final image.
+    unexpected_missing=$(printf '%s\n' "$unexpected_missing" |
+        grep -v 'libcuda\.so' || true)
+fi
+if [[ -n "$unexpected_missing" ]]; then
     echo 'CP2K has unresolved build-time libraries' >&2
     exit 1
 fi
