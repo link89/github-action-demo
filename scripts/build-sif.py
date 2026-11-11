@@ -83,7 +83,10 @@ def main() -> None:
             ]
         )
 
-    run(["apptainer", "build", "--force", str(output), f"oci:{oci_dir}:{OCI_TAG}"])
+    # The oci: transport treats everything after "oci:" as the layout path and
+    # has no :tag suffix (unlike oci-archive:). A single-manifest layout is
+    # selected automatically.
+    run(["apptainer", "build", "--force", str(output), f"oci:{oci_dir}"])
     print(f"Created: {output}")
 
 
