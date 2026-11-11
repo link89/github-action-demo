@@ -84,6 +84,28 @@ CP2K_SRC=/mnt/scratch/cp2k-2026.2
 # The toolchain requires PWD to match its physical source directory.
 CP2K_SRC=$(cd "$CP2K_SRC" && pwd -P)
 
+# CUDA-enabled LibTorch from conda can propagate CUDA::cudart_static through
+# its imported targets. Replace those transitive dependencies with the shared
+# runtime before CP2K creates its link interface.
+CP2K_CMAKE="$CP2K_SRC/CMakeLists.txt"
+/usr/local/bin/python - "$CP2K_CMAKE" <<'PY'
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+text = path.read_text()
+anchor = "if(CP2K_USE_LIBTORCH)\n  find_package(Torch REQUIRED)\n"
+replacement = (
+    anchor
+    + "  # Keep CUDA runtime linkage shared when LibTorch exports static cudart.\n"
+    + "  include(/mnt/scripts/use-shared-cudart.cmake)\n"
+)
+if text.count(anchor) != 1:
+    raise SystemExit(f"CP2K Torch CMake anchor not found exactly once in {path}")
+path.write_text(text.replace(anchor, replacement, 1))
+PY
+grep -Fq 'include(/mnt/scripts/use-shared-cudart.cmake)' "$CP2K_CMAKE"
+
 toolchain_args=(
     -j "$(nproc)"
     --target-cpu=icelake-server
@@ -156,6 +178,9 @@ if [[ "$CP2K_ENABLE_CUDA" == 1 ]]; then
         -DCUDAToolkit_ROOT=/usr/local
         -DSPLA_ROOT="${SPLA_ROOT}-cuda"
         -DCP2K_USE_SPLA_GEMM_OFFLOADING=ON
+        -DCAFFE2_STATIC_LINK_CUDA=OFF
+        -DCUDA_USE_STATIC_CUDA_RUNTIME=OFF
+        -DCMAKE_CUDA_RUNTIME_LIBRARY=Shared
     )
 fi
 
