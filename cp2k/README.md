@@ -1,12 +1,12 @@
 # CP2K: Miniforge + MKL
 
 `make-cpu.sh` and `make-cuda.sh` build CP2K 2026.2 and DeePMD-kit
-3.2.0 from source on `condaforge/miniforge3:26.3.2-3`. The CPU and CUDA
-variants use separate tags:
+main commit `b0d8ac8` from source on `condaforge/miniforge3:26.3.2-3`. The CPU
+and CUDA variants use separate tags:
 
 ```text
-ghcr.io/link89/cp2k:2026.2-dp320-ompi50x-icelake-1
-ghcr.io/link89/cp2k:2026.2-dp320-ompi50x-cu129-icelake-1
+ghcr.io/link89/cp2k:2026.2-dp261112b0d8-ompi50x-icelake-1
+ghcr.io/link89/cp2k:2026.2-dp261112b0d8-ompi50x-cu129-icelake-1
 ```
 
 CUDA 12.9 remains in the CUDA tag because both CP2K and DeePMD are compiled
@@ -87,8 +87,8 @@ the entrypoint only configures the process environment and executes the given
 command unchanged. Pass CP2K input files explicitly with `-i`.
 
 ```bash
-IMAGE=ghcr.io/link89/cp2k:2026.2-dp320-ompi50x-icelake-1
-CUDA_IMAGE=ghcr.io/link89/cp2k:2026.2-dp320-ompi50x-cu129-icelake-1
+IMAGE=ghcr.io/link89/cp2k:2026.2-dp261112b0d8-ompi50x-icelake-1
+CUDA_IMAGE=ghcr.io/link89/cp2k:2026.2-dp261112b0d8-ompi50x-cu129-icelake-1
 docker run --rm -v "$PWD:/work" -e OMP_NUM_THREADS=4 "$IMAGE" \
   cp2k -i cp2k.inp
 docker run --rm -v "$PWD:/work" -e OMP_NUM_THREADS=4 "$IMAGE" \
@@ -114,10 +114,10 @@ argument uses the same form as a Dockerfile or Compose image reference:
 
 ```bash
 python3 scripts/build-sif.py \
-  ghcr.io/link89/cp2k:2026.2-dp320-ompi50x-icelake-1
+  ghcr.io/link89/cp2k:2026.2-dp261112b0d8-ompi50x-icelake-1
 ```
 
-This creates `cp2k-2026.2-dp320-ompi50x-icelake-1.sif` and reuses
+This creates `cp2k-2026.2-dp261112b0d8-ompi50x-icelake-1.sif` and reuses
 `./tmp-oci` by default. Pass an output path or `--oci-dir` to override them.
 The script does not set Apptainer cache or temporary-directory variables; set
 them in the environment when the defaults are unsuitable.
@@ -139,4 +139,4 @@ References:
 - <https://github.com/cp2k/cp2k/blob/master/tools/docker/Dockerfile.test_gcc-mkl-psmp>
 - <https://github.com/cp2k/cp2k/blob/master/tools/docker/Dockerfile.test_cuda_A40>
 - <https://github.com/conda-forge/cp2k-feedstock>
-- <https://docs.deepmodeling.com/projects/deepmd/en/v3.2.0/install/install-from-source.html>
+- <https://github.com/deepmodeling/deepmd-kit/blob/b0d8ac8/doc/install/install-from-source.md>

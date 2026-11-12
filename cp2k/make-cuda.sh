@@ -2,7 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-export BUILD_VARIANT=dp320-ompi50x-cu129-icelake
+export BUILD_VARIANT=dp261112b0d8-ompi50x-cu129-icelake
 export VARIANT_SLUG=cuda
 export CP2K_ENABLE_CUDA=1
 # DBCSR uses the toolchain's single GPU target; CP2K itself is built for all

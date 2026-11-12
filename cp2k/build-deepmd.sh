@@ -2,11 +2,12 @@
 set -euo pipefail
 
 SOURCE=/mnt/scratch/deepmd-kit
-ARCHIVE=/mnt/scratch/deepmd-v3.2.0.tar.gz
+DEEPMD_COMMIT=b0d8ac8605cd52cad31fa769df591ad51613c670
+ARCHIVE=/mnt/scratch/deepmd-${DEEPMD_COMMIT}.tar.gz
 
-curl -fL --retry 3 https://github.com/deepmodeling/deepmd-kit/archive/refs/tags/v3.2.0.tar.gz -o "$ARCHIVE"
+curl -fL --retry 3 "https://github.com/deepmodeling/deepmd-kit/archive/${DEEPMD_COMMIT}.tar.gz" -o "$ARCHIVE"
 tar -xzf "$ARCHIVE" -C /mnt/scratch
-mv /mnt/scratch/deepmd-kit-3.2.0 "$SOURCE"
+mv "/mnt/scratch/deepmd-kit-${DEEPMD_COMMIT}" "$SOURCE"
 
 # DeepMD's TensorFlow sources relied on device.h leaking through a PUBLIC PCH.
 # Keep that PCH private so the broken install interface is not exported, and
