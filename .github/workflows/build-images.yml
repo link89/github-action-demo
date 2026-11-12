@@ -2,8 +2,18 @@ name: Build Images
 on:
   pull_request:
     types: [opened, reopened, edited, synchronize]
+    paths-ignore:
+      - 'scripts/**'
+      - '**/[Rr][Ee][Aa][Dd][Mm][Ee].[Mm][Dd]'
+      - '**/[Aa][Gg][Ee][Nn][Tt].[Mm][Dd]'
+      - '**/[Aa][Gg][Ee][Nn][Tt][Ss].[Mm][Dd]'
   push:
     branches: [ main ]
+    paths-ignore:
+      - 'scripts/**'
+      - '**/[Rr][Ee][Aa][Dd][Mm][Ee].[Mm][Dd]'
+      - '**/[Aa][Gg][Ee][Nn][Tt].[Mm][Dd]'
+      - '**/[Aa][Gg][Ee][Nn][Tt][Ss].[Mm][Dd]'
 
 jobs:
   build:
