@@ -65,23 +65,21 @@ def main() -> None:
     print(f"Output: {output}")
     print(f"OCI layout: {oci_dir}")
 
-    if (oci_dir / "index.json").is_file():
-        print(f"Using existing OCI layout: {oci_dir}")
-    else:
-        run(
-            [
-                "skopeo",
-                "copy",
-                "--retry-times",
-                "20",
-                "--override-os",
-                "linux",
-                "--override-arch",
-                "amd64",
-                source,
-                f"oci:{oci_dir}:{OCI_TAG}",
-            ]
-        )
+    # Refresh the manifest for this image while reusing existing layer blobs.
+    run(
+        [
+            "skopeo",
+            "copy",
+            "--retry-times",
+            "20",
+            "--override-os",
+            "linux",
+            "--override-arch",
+            "amd64",
+            source,
+            f"oci:{oci_dir}:{OCI_TAG}",
+        ]
+    )
 
     # The oci: transport treats everything after "oci:" as the layout path and
     # has no :tag suffix (unlike oci-archive:). A single-manifest layout is
